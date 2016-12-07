@@ -35,7 +35,7 @@ private $dbeConfGroupFilelds = array(
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
               'support'=>'Select type of option group elements', 
-              'data'=>'[{"key":"0","value":"SelectBox"},{"key":"1","value":"RadioBox"},{"key":"2","value":"TextFields"},{"key":"3","value":"FrontBackSide"}]'
+              'data'=>'[{"key":"SelectBox","value":"SelectBox"},{"key":"RadioBox","value":"RadioBox"},{"key":"TextFields","value":"TextFields"},{"key":"FrontBackSide","value":"FrontBackSide"}]'
               ),
         array('name'=>'groupinfo', 
               'type'=>'html', 
@@ -51,33 +51,29 @@ private $dbeConfOptionFilelds = array(
         array('name'=>'optioninfo', 
               'type'=>'string', 
               'column_type'=>'varchar(500)',
-              'label'=>'Attribute info', 
-              'help'=>'Sets additional attribute information for frontend', 
+              'label'=>'Option info', 
+              'help'=>'Sets additional information for the option', 
               'support'=>'Set additional information', 
               'data'=>''
               ),
-        array('name'=>'optionparent', 
+        array('name'=>'subgroup', 
               'type'=>'string', 
               'column_type'=>'varchar(500)',
-              'label'=>'Parent group name', 
-              'help'=>'Define if attribute is separate options group', 
-              'support'=>'Set existing group name', 
-              'data'=>'',
-              'non_translatable'=>true 
+              'label'=>'Subgroup Tag', 
+              'help'=>'Sets option name to create subgroup', 
+              'support'=>'Set subgroup name', 
+              'data'=>''
               )
     );
 
 public function install()
 {
   try {
-    //$this->CreateEvents();
     $this->CreateAttributeTables();
     $this->installConfiguratorAttributes();
+    $this->CreateEvents();
     
-    $this->subscribeEvent('Enlight_Bootstrap_InitResource_shopware_attribute.table_mapping', 'onTableMappingConstruct');
-    $this->subscribeEvent('Enlight_Controller_Action_PostDispatchSecure_Backend_Article','onBackendArticlePostDispatch');
-
-    return true; //array('success' => true, 'invalidateCache' => $this->clearCache);
+    return array('success' => true, 'invalidateCache' => $this->clearCache);
 
   } catch (Exception $exception) {
     $this->uninstall();
@@ -89,6 +85,7 @@ public function uninstall()
 {
     $this->unInstallConfiguratorAttributes();
     $this->DropAttributeTables();
+    $this->DropArticleTemplates();
     parent::uninstall();
     return true;
 }
@@ -177,57 +174,77 @@ public function CreateEvents()
 {
   $this->subscribeEvent('Enlight_Bootstrap_InitResource_shopware_attribute.table_mapping', 'onTableMappingConstruct');
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatchSecure_Backend_Article','onBackendArticlePostDispatch');
+
+  $this->subscribeEvent('sArticles::sGetArticleById::after', 'onArticleGetProduct');
+
+  $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Detail','onFrontendDetailPostDispatch');
+  $this->subscribeEvent('Shopware_Controllers_Backend_Article::loadStoresAction::after', 'afterBackendArticleLoadStoresAction');
 }
 
-public function onCustomerPostDispatch(Enlight_Event_EventArgs $args)
-{
-    /** @var \Enlight_Controller_Action $controller */
-    $controller = $args->getSubject();
-    $view = $controller->View();
-    $request = $controller->Request();
-
-    $view->addTemplateDir(__DIR__ . '/Views');
-
-    if ($request->getActionName() == 'load') {
-        $view->extendsTemplate('backend/swag_extend_customer/view/detail/billing.js');
+public function onArticleGetProduct(Enlight_Hook_HookArgs $args) {
+    $params = $args->getReturn();
+    $all_groups=$params["sConfigurator"];
+    if ($all_groups) {
+      $cnt=0;
+      foreach ($all_groups as $grp) {
+         if ($grp["groupID"]) {
+            $data = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_groups_attributes WHERE groupID = ?", [$grp["groupID"]]);
+            if (count($data) > 0) {
+              $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];
+            }
+            $all_values=$grp["values"];
+            if ($all_values) {  
+              foreach ($all_values as $v) {
+                $id=$v["optionID"];
+                if ($id) {
+                  $vdata = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_options_attributes WHERE optionID = ?", [$id]);
+                  if (count($vdata) > 0) {
+                    $params["sConfigurator"][$cnt]["values"][$id]["group_attributes"]=$vdata[0];
+                  }
+                }
+              }  
+            }  
+         }
+         $cnt+=1;
+      }
     }
+    $args->setReturn($params);
 }
 
 
 public function CreateAttributeTables()
 {
-  $sqlQuery = "
-    CREATE TABLE IF NOT EXISTS s_article_configurator_groups_attributes (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    groupID INT(11) UNSIGNED
-    )
-    ";
-  Shopware()->Db()->query($sqlQuery);
-  $sqlQuery = "
-    CREATE TABLE IF NOT EXISTS s_article_configurator_options_attributes (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    optionID INT(11) UNSIGNED
-    )
-    ";
-  Shopware()->Db()->query($sqlQuery);
+    $sqlQuery = "
+      CREATE TABLE IF NOT EXISTS s_article_configurator_groups_attributes (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      groupID INT(11) UNSIGNED
+      )
+      ";
+    Shopware()->Db()->query($sqlQuery);
+    $sqlQuery = "
+      CREATE TABLE IF NOT EXISTS s_article_configurator_options_attributes (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      optionID INT(11) UNSIGNED
+      )
+      ";
+    Shopware()->Db()->query($sqlQuery);
 }
 
 public function DropAttributeTables()
 {
-  $sqlQuery = "DROP TABLE IF EXISTS s_article_configurator_groups_attributes, s_article_configurator_options_attributes";
-  Shopware()->Db()->query($sqlQuery);
+    $sqlQuery = "DROP TABLE IF EXISTS s_article_configurator_groups_attributes, s_article_configurator_options_attributes";
+    Shopware()->Db()->query($sqlQuery);
 }
 
 public function onTableMappingConstruct(Enlight_Event_EventArgs $args)
 {
-  $newService = new Shopware\Plugins\CardFormular\resources\TableMappingEx(Shopware()->Container()->get('dbal_connection'));
-  Shopware()->Container()->set('shopware_attribute.table_mapping', $newService);
+    $newService = new Shopware\Plugins\CardFormular\resources\TableMappingEx(Shopware()->Container()->get('dbal_connection'));
+    Shopware()->Container()->set('shopware_attribute.table_mapping', $newService);
 }
 
 
 public function onBackendArticlePostDispatch(Enlight_Event_EventArgs $args)
-{
-   
+{   
     $controller = $args->getSubject();
     $view = $controller->View();
     $request = $controller->Request();
@@ -235,19 +252,45 @@ public function onBackendArticlePostDispatch(Enlight_Event_EventArgs $args)
     $view->addTemplateDir(__DIR__ . '/Views');
 
     if ($request->getActionName() == 'load') {
-
-      error_log('----done!');
-      ob_start();
-      print_r($request->getActionName());
-      $contents = ob_get_contents();
-      ob_end_clean();
-      error_log($contents);
-
-
-      $view->extendsTemplate('backend/cardformular_extend_article/view/variant/configurator/group_edit.js');  
+        $view->extendsTemplate('backend/cardformular_extend_article/controller/variant.js');
+        $view->extendsTemplate('backend/cardformular_extend_article/view/variant/configurator/group_edit.js');  
+        $view->extendsTemplate('backend/cardformular_extend_article/view/variant/configurator/option_edit.js');
     }
 
 }
 
+public function afterBackendArticleLoadStoresAction(Enlight_Event_EventArgs $args)
+{
+    $controller = $args->getSubject();
+    $view = $controller->View();
+
+    $data = $view->getAssign('data');
+    $templates = $data['templates'];
+
+    $templates[] = array(
+      'id'  => 'card_formular.tpl',
+      'name'  => 'CardFormular',
+    );
+
+    $data['templates'] = $templates;
+    $view->assign('data', $data);
+}
+
+public function DropArticleTemplates()
+{
+    $sql = 'UPDATE `s_articles` SET `template`="" WHERE `template`="card_formular.tpl"';
+    Shopware()->Db()->query($sql);
+}
+
+public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
+{
+    $controller = $args->getSubject();
+    $view = $controller->View();
+
+    $view->addTemplateDir($this->Path() . 'Views/');
+
+    $view->extendsTemplate('frontend/detail/card_formular.tpl');
+    $view->extendsTemplate('frontend/detail/scripts.tpl');
+}
 
 }

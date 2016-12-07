@@ -1,0 +1,119 @@
+.product--details {
+
+	.product--image-container-cf {        
+        width: 100%;
+        float: none;
+	}    
+    
+    .product--image-container-right-cf {
+        width: 100%;
+        float: none;
+    }
+    
+    .review--form-container {
+        width: 80%;
+    }
+
+    .product--data-container-cf {        
+        width: 100%;
+        float: none;
+        .unitize-padding(0, 10, 0, 10);
+    }
+
+    .product--data-comments-cf {        
+        width: 100%;
+        float: none;
+        .unitize-padding(0, 0, 10, 0);
+    }
+
+    .product--data-spacer-cf {     
+        .unitize-padding(0, 0, 60, 0);
+    }
+    
+    .content--proposals {
+        .unitize-padding(10, 10);
+    }
+
+    .buybox--quantity {
+        width: 40%;
+    }
+
+    .table-group-cf {
+       width: 100%;
+    }
+
+    .group-option-cf {
+       border: 1px solid #ddd;
+       .unitize-margin(0, 0, 20, 0);
+    }
+
+    .group-option-common-cf {
+       .unitize-padding(0, 10, 0, 10);
+    }
+
+    .group-option-qty-cf {
+       .unitize-padding(0, 10, 10, 10);
+    }
+
+    .table-inner-cf {
+       width: 100%;
+       border: 1px solid #ddd;
+       .unitize-padding(10, 10, 10, 10);
+    }
+
+    .table-td-inner-cf {
+      .unitize-padding(0, 15, 0, 15);
+    }
+
+    .link-show-tooltip {
+      .unitize-padding(10, 0, 0, 0);
+    }
+
+    .product--options-spacer-cf {
+      .unitize-padding(5, 0, 0, 0);
+      .unitize(height, 5);
+      .unitize(font-size, 5); 
+      width: 100%;
+    }
+}
+
+@media screen and(min-width: @tabletViewportWidth) {
+    .product--details {
+        .content--proposals {
+            .unitize-padding(30, 30);
+        }
+
+        .product--image-container-cf {
+            width: 100%;
+            float: none;
+        }
+
+        .product--image-container-right-cf {
+            width: 100%;
+            margin-right: 0;
+            float: none;
+        }
+
+    }
+}    
+
+   
+// Tablet landscape - min-width: 1024px
+@media screen and (min-width: @tabletLandscapeViewportWidth) {
+	.product--details {
+
+		.product--image-container-cf {
+            width: 40%;
+            float: left;
+		}
+
+        .product--image-container-right-cf {
+            width: 56%;
+            margin-right: 4%;
+            float: left;
+        }
+
+    
+	}
+}
+
