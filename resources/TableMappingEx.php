@@ -25,6 +25,7 @@
 namespace Shopware\Bundle\AttributeBundle\Service;
 namespace Shopware\Plugins\CardFormular\resources;
 
+use Shopware\Bundle\AttributeBundle\Service\TableMapping;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Column;
 
@@ -33,7 +34,7 @@ use Doctrine\DBAL\Schema\Column;
  * @package   Shopware\Bundle\AttributeBundle\Service
  * @copyright Copyright (c) shopware AG (http://www.shopware.com)
  */
-class TableMappingEx
+class TableMappingEx extends TableMapping
 {
     /**
      * @var Connection

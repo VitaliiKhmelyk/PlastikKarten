@@ -1,119 +1,108 @@
-.product--details {
+.product--details .product--image-container-cf {
+	width: 50%;
+	padding: 0 20px 0 0;
+	float: left;
+}
 
-	.product--image-container-cf {        
-        width: 100%;
-        float: none;
-	}    
-    
-    .product--image-container-right-cf {
-        width: 100%;
-        float: none;
-    }
-    
-    .review--form-container {
-        width: 80%;
-    }
+.product--details .product--image-container-right-cf {
+	width: 50%;
+	padding: 0 20px 0 0;
+	float: left;
+}
 
-    .product--data-container-cf {        
-        width: 100%;
-        float: none;
-        .unitize-padding(0, 10, 0, 10);
-    }
+.product--details .review--form-container {
+	width: 80%;
+}
 
-    .product--data-comments-cf {        
-        width: 100%;
-        float: none;
-        .unitize-padding(0, 0, 10, 0);
-    }
+.product--details .product--data-container-cf {
+	width: 100%;
+	float: none;
+    padding: 0px 10px 0px 10px;
+}
 
-    .product--data-spacer-cf {     
-        .unitize-padding(0, 0, 60, 0);
-    }
-    
-    .content--proposals {
-        .unitize-padding(10, 10);
-    }
+.product--details .product--data-comments-cf {
+	width: 100%;
+	float: none;
+	padding: 0 0 10px 0;
+}
 
-    .buybox--quantity {
-        width: 40%;
-    }
+.product--details .product--data-spacer-cf {
+	padding: 0, 0, 60px, 0;
+}
 
-    .table-group-cf {
-       width: 100%;
-    }
+.product--details .content--proposals {
+	padding: 10px 10px;
+}
 
-    .group-option-cf {
-       border: 1px solid #ddd;
-       .unitize-margin(0, 0, 20, 0);
-    }
+.product--details .buybox--quantity {
+	width: 40%;
+}
 
-    .group-option-common-cf {
-       .unitize-padding(0, 10, 0, 10);
-    }
+.product--details .table-group-cf {
+	width: 100%;
+}
 
-    .group-option-qty-cf {
-       .unitize-padding(0, 10, 10, 10);
-    }
+.product--details .group-option-cf {
+	border: 1px solid #ddd;
+	margin: 0 0 20px 0;
+}
 
-    .table-inner-cf {
-       width: 100%;
-       border: 1px solid #ddd;
-       .unitize-padding(10, 10, 10, 10);
-    }
+.group-option-common-cf {
+	padding: 0 10px 0 10px;
+}
 
-    .table-td-inner-cf {
-      .unitize-padding(0, 15, 0, 15);
-    }
+.product--details .group-option-qty-cf {
+	padding: 0 10px 10px 10px;
+}
 
-    .link-show-tooltip {
-      .unitize-padding(10, 0, 0, 0);
-    }
+.product--details .table-inner-cf {
+	width: 100%;
+	border: 1px solid #ddd;
+	padding: 10px 10px 10px 10px;
+}
 
-    .product--options-spacer-cf {
-      .unitize-padding(5, 0, 0, 0);
-      .unitize(height, 5);
-      .unitize(font-size, 5); 
-      width: 100%;
-    }
+.product--details .table-td-inner-cf {
+	padding: 0 15px 0 15px;
+}
+
+.product--details .link-show-tooltip {
+	padding: 10px 0 0 0;
+}
+
+.product--details .product--options-spacer-cf {
+	padding: 5px 0 0 0;
+	height: 5px;
+	font-size: 5px;
+	width: 100%;
 }
 
 @media screen and(min-width: @tabletViewportWidth) {
-    .product--details {
-        .content--proposals {
-            .unitize-padding(30, 30);
-        }
+	.product--details .content--proposals {
+		padding: 30px 30px;
+	}
 
-        .product--image-container-cf {
-            width: 100%;
-            float: none;
-        }
+	.product--details .product--image-container-cf {
+		width: 100%;
+		float: none;
+	}
 
-        .product--image-container-right-cf {
-            width: 100%;
-            margin-right: 0;
-            float: none;
-        }
-
-    }
-}    
-
-   
-// Tablet landscape - min-width: 1024px
-@media screen and (min-width: @tabletLandscapeViewportWidth) {
-	.product--details {
-
-		.product--image-container-cf {
-            width: 40%;
-            float: left;
-		}
-
-        .product--image-container-right-cf {
-            width: 56%;
-            margin-right: 4%;
-            float: left;
-        }
-
-    
+	.product--details .product--image-container-right-cf {
+		width: 100%;
+		margin-right: 0;
+		float: none;
 	}
 }
 
+/* Tablet landscape - min-width: 1024px */
+@media screen and (min-width: @tabletLandscapeViewportWidth) {
+	.product--details .product--image-container-cf {
+		width: 40%;
+		float: left;
+	}
+
+	.product--details .product--image-container-right-cf {
+		width: 56%;
+		margin-right: 4%;
+		float: left;
+	}
+}

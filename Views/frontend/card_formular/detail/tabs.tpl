@@ -10,7 +10,7 @@
   {$smarty.block.parent}
 
 	{block name="frontend_detail_tabs_proposals"}
-	 	<a href="#" class="tab--link" title="{s name='DetailTabsProposals' namespace='frontend/detail/card_formular'}{/s}" data-tabName="proposals">{s name='DetailTabsProposals' namespace='frontend/detail/card_formular'}{/s}</a>
+	 	<a href="#" class="tab--link" title="{s name='DetailTabsProposals' namespace='CardFormular'}{/s}" data-tabName="proposals">{s name='DetailTabsProposals' namespace='CardFormular'}{/s}</a>
 	{/block}	
 
 {/block}
@@ -28,7 +28,7 @@
              {block name="frontend_detail_tabs_proposals_title"}
                <div class="tab--header">
                   {block name="frontend_detail_tabs_proposals_title_inner"}
-                   <a href="#" class="tab--title" title="{s name='DetailTabsProposals' namespace='frontend/detail/card_formular'}{/s}">{s name='DetailTabsProposals' namespace='frontend/detail/card_formular'}{/s}</a>
+                   <a href="#" class="tab--title" title="{s name='DetailTabsProposals' namespace='CardFormular'}{/s}">{s name='DetailTabsProposals' namespace='CardFormular'}{/s}</a>
                   {/block}
                </div>
              {/block}
@@ -37,7 +37,7 @@
              {block name="frontend_detail_tabs_proposals_preview"}
                <div class="tab--preview">
                   {block name="frontend_detail_tabs_proposals_preview_inner"}
-                      {s name="ProposalsPreviewText" namespace='frontend/detail/card_formular'}{/s}<a href="#" class="tab--link" title="{s name='PreviewTextMore' namespace='frontend/detail/card_formular'}{/s}">{s name='PreviewTextMore' namespace='frontend/detail/card_formular'}{/s}</a>
+                      {s name="ProposalsPreviewText" namespace='CardFormular'}{/s}<a href="#" class="tab--link" title="{s name='PreviewTextMore' namespace='CardFormular'}{/s}">{s name='PreviewTextMore' namespace='CardFormular'}{/s}</a>
                   {/block}
               </div>
              {/block}

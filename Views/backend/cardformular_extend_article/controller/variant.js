@@ -18,13 +18,14 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
         var name = group.get('name');
         group.save({
             success: function(record, operation) {                
-                window.attributeForm.saveAttribute(record.get('id'));
+                window.attributeForm.saveAttribute(record.get('id'));                
+                window.destroy();
                 var message = Ext.String.format(me.snippets.success.groupSave, name);
                 Shopware.Notification.createGrowlMessage(me.snippets.success.title, message, me.snippets.growlMessage);
                 me.getConfiguratorGroupListing().reconfigure(me.getConfiguratorGroupListing().getStore());
             },
             failure: function(record, operation) {
-                
+                window.destroy();
                 var rawData = record.getProxy().getReader().rawData,
                     message = rawData.message;
 
@@ -36,7 +37,6 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
                 Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
             }
         });
-        window.destroy();
     },
 
     onSaveOption: function(option, form, window) {
@@ -49,11 +49,14 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
         option.save({
             success: function(record, operation) {
                 window.attributeForm.saveAttribute(record.get('id'));
+                window.attributeForm.saveMediaAttribute(record.get('id'), 'optionID', record.get('cfMediaid'));
+                window.destroy();
                 var message = Ext.String.format(me.snippets.success.optionSave, name);
                 Shopware.Notification.createGrowlMessage(me.snippets.success.title, message, me.snippets.growlMessage);
                 me.getConfiguratorOptionListing().reconfigure(me.getConfiguratorOptionListing().getStore());
             },
             failure: function(record, operation) {
+                window.destroy();
                 var rawData = record.getProxy().getReader().rawData,
                     message = rawData.message;
 
@@ -65,7 +68,6 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
                 Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
             }
         });
-        window.destroy();
     },
 
 });
