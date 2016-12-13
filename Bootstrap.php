@@ -35,15 +35,7 @@ private $dbeConfGroupFilelds = array(
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
               'support'=>'Select type of option group elements', 
-              'data'=>'[{"key":"SelectBox","value":"SelectBox"},{"key":"RadioBox","value":"RadioBox"},{"key":"TextFields","value":"TextFields"},{"key":"FrontBackSide","value":"FrontBackSide"}]'
-              ),        
-        array('name'=>'groupstage', 
-              'type'=>'integer', 
-              'column_type'=>'int(11)',
-              'label'=>'Group stage', 
-              'help'=>'Sets stage for the group in frontend workflow', 
-              'support'=>'Set group stage', 
-              'data'=>''
+              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text inputs"},{"key":"FrontBackSide","value":"Surface design"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"}]'
               ),
         array('name'=>'groupinfo', 
               'type'=>'html', 
@@ -52,7 +44,32 @@ private $dbeConfGroupFilelds = array(
               'help'=>'Sets additional information for the group', 
               'support'=>'Set additional information', 
               'data'=>''
-              )
+              ),
+       array('name'=>'subgroupid', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Subgroup ID', 
+              'help'=>'Sets subgroup ID to build dependencies with other options', 
+              'support'=>'Set subgroup ID', 
+              'data'=>''
+              ),
+       array('name'=>'workflowstage', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Workflow tag', 
+              'help'=>'Sets stage for the group in frontend workflow', 
+              'support'=>'Set frontend workflow tag', 
+              'data'=>''
+              ),
+       array('name'=>'position', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Position', 
+              'help'=>'', 
+              'support'=>'', 
+              'data'=>'',
+              'customtype'=>'position'
+              )        
     );
 
 private $dbeConfOptionFilelds = array(       
@@ -63,15 +80,7 @@ private $dbeConfOptionFilelds = array(
               'help'=>'Sets additional information for the option', 
               'support'=>'Set additional information', 
               'data'=>''
-              ),
-        array('name'=>'subgroup', 
-              'type'=>'string', 
-              'column_type'=>'varchar(500)',
-              'label'=>'Subgroup Tag', 
-              'help'=>'Sets option name to create subgroup', 
-              'support'=>'Set subgroup name', 
-              'data'=>''
-              ),
+              ),        
         array('name'=>'mediaid', 
               'type'=>'integer', 
               'column_type'=>'int(11)',
@@ -80,6 +89,23 @@ private $dbeConfOptionFilelds = array(
               'support'=>'', 
               'data'=>'',
               'customtype'=>'media'
+              ),
+         array('name'=>'subgroupid', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Subgroup ID', 
+              'help'=>'Sets subgroup ID to build dependencies with other groups', 
+              'support'=>'Set subgroup ID', 
+              'data'=>''
+              ),
+         array('name'=>'position', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Position', 
+              'help'=>'', 
+              'support'=>'', 
+              'data'=>'',
+              'customtype'=>'position'
               )
     );
 
@@ -142,14 +168,19 @@ public function installConfiguratorAttributes()
     $tname='s_article_configurator_groups_attributes';
     $c=1;
     foreach ($all_entries as $cur_entry) {
+      if ($cur_entry['customtype']) {   
+        $cbackend=0;
+      } else {
+        $cbackend=1;
+      }
       Shopware()->Models()->addAttribute(
         $tname, 
         $this->cf_prefix,
         $cur_entry['name'],
         $cur_entry['column_type']);
       $cname=($this->cf_prefix).'_'.$cur_entry['name'];
-      $sqlQuery = "INSERT INTO s_attribute_configuration(table_name, column_name, column_type, position, translatable, display_in_backend, custom, help_text, support_text, label, entity, array_store) VALUES (?,?,?,?,1,1,0,?,?,?,?,?)";
-        Shopware()->Db()->query($sqlQuery,[$tname,$cname,$cur_entry["type"],$c,$cur_entry["help"],$cur_entry["support"],$cur_entry["label"],"",$cur_entry["data"]]); 
+      $sqlQuery = "INSERT INTO s_attribute_configuration(table_name, column_name, column_type, position, translatable, display_in_backend, custom, help_text, support_text, label, entity, array_store) VALUES (?,?,?,?,1,?,0,?,?,?,?,?)";
+        Shopware()->Db()->query($sqlQuery,[$tname,$cname,$cur_entry["type"],$c,$cbackend,$cur_entry["help"],$cur_entry["support"],$cur_entry["label"],"",$cur_entry["data"]]); 
       $c+=1;  
     }  
     $all_entries = $this->dbeConfOptionFilelds;
@@ -329,6 +360,10 @@ public function CreateForm()
     array(0, 'No'),
     array(1, 'Yes'),
   );
+  $errorMessagesArray = array(
+  array(0, 'An Karte anpassen'),
+  array(1, 'Im Original drucken'),
+  );
 
   $form->setElement('select', 'cf_show_markup',
     array(
@@ -339,6 +374,7 @@ public function CreateForm()
     )
   );
 
+  // FTP settings
   $form->setElement('text', 'cf_remote_ftp_address',
     array(
       'label'     => 'Remote FTP server address',
@@ -363,6 +399,60 @@ public function CreateForm()
       'required'  => false,
     )
   );
+
+  // Files settings
+  $form->setElement('text', 'cf_files_make_time',
+    array(
+      'label'     => 'Preparation time',
+      'required'  => false,
+    )
+  );
+  $form->setElement('text', 'cf_files_upload_size',
+    array(
+      'label'     => 'Maximum file size',
+      'required'  => false,
+    )
+  );
+  $form->setElement('select', 'cf_files_upload_preview',
+    array(
+      'label'     => 'Show previews of the uploaded file',
+      'scope'     => \Shopware\Models\Config\Element::SCOPE_SHOP,
+      'required'  => false,
+      'store'     => $booleanArray,
+    )
+  );
+  $form->setElement('text', 'cf_files_types',
+    array(
+      'label'     => 'What types of files will be supported',
+      'required'  => false,
+    )
+  );
+  $form->setElement('color', 'cf_files_error_color',
+    array(
+      'label' => 'Error field color', 
+      'value' => '#FF0000',
+    )
+  );
+  $form->setElement('text', 'cf_files_error_message',
+    array(
+      'label'     => 'Show message if upload error',
+      'required'  => false,
+    )
+  );
+  $form->setElement('text', 'cf_files_optimal_size',
+    array(
+      'label'     => 'The optimal size of the file to print in mm or pixels',
+      'required'  => false,
+    )
+  );
+  $form->setElement('select', 'cf_files_upload_size_message',
+    array(
+      'label'     => 'If the downloaded file is different from the specified dimensions',
+      'scope'     => \Shopware\Models\Config\Element::SCOPE_SHOP,
+      'required'  => false,
+      'store'     => $errorMessagesArray,
+    )
+  );
 }
 
 public function DropArticleTemplates()
@@ -385,7 +475,6 @@ public function getSelectedOptions($article)
       }
     }
   }
-
   return $result;
 }
 
@@ -506,27 +595,26 @@ public function ftpUpload($fileData)
     return 0;
   }
 }
-
 public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
 {
     $controller = $args->getSubject();
     $view = $controller->View();
 
-  $sArticle = $view->getAssign('sArticle');
-  $sql = 'SELECT configurator_set_id FROM s_articles WHERE id = ' . $sArticle['articleID'];
-  $configuratorSetId = Shopware()->Db()->fetchOne($sql);
+    $sArticle = $view->getAssign('sArticle');
+    $sql = 'SELECT configurator_set_id FROM s_articles WHERE id = ' . $sArticle['articleID'];
+    $configuratorSetId = Shopware()->Db()->fetchOne($sql);
 
-  $markups = $this->getMarkupPrice($sArticle, $configuratorSetId);
+    $markups = $this->getMarkupPrice($sArticle, $configuratorSetId);
 
     $view->addTemplateDir($this->Path() . 'Views/');
 
     $view->assign('cf_show_markup', $this->Config()->get('cf_show_markup', 0));
     $view->assign('cf_markups', $markups);
 
-  if($sArticle['template'] == 'card_formular.tpl') {
-    $view->extendsTemplate('frontend/detail/card_formular.tpl');
-    $view->extendsTemplate('frontend/detail/scripts.tpl');
-  }
+    if($sArticle['template'] == 'card_formular.tpl') {
+      $view->extendsTemplate('frontend/detail/card_formular.tpl');
+      $view->extendsTemplate('frontend/detail/scripts.tpl');
+    }
 }
 
  public function getMediaInfoById($id)

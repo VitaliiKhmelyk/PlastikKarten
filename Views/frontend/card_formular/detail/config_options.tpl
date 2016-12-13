@@ -5,8 +5,10 @@
 {/block}
 
 <form method="post" action="{url sArticle=$sArticle.articleID sCategory=$sArticle.categoryID}" class="configurator--form selection--form">
-	<div class="variant--group group-option-cf group-option-qty-cf">
+	<div class="variant--group group-option-cf group-option-common-cf">
 		<p class="configurator--label">{s name='Quantity' namespace='CardFormular'}{/s}:</p>
+		<table>
+        <tr><td>
 		<div class="field--select">
 			<span class="arrow"></span>			
 			<input type="text" min="{$sArticle.minpurchase}" max="{$maxQuantity}" value="{$curQuantity}"  
@@ -26,11 +28,44 @@
 				<i class="icon--cycle"></i>
 			</a>			
 		</div>	
+		</td></tr>
+		</table>
+		<div class="product--data-spacer-cf"></div>
 	</div>	
+
+	{$subgroups = array()}
+	{foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
+		{if $sConfigurator["group_attributes"]["cf_subgroupid"]}
+		  {$group_parentid = $sConfigurator["group_attributes"]["cf_subgroupid"]}
+		  {if ($group_parentid!="") && ($group_parentid!="0")}
+			  {if !(in_array($group_parentid, $subgroups))}
+				  {$parent_found=false}			  
+				  {foreach from=$sArticle.sConfigurator item=sConfiguratorTmp}
+				      {if !($parent_found)}
+						  {if $sConfigurator.groupname!=$sConfiguratorTmp.groupname}
+							  {foreach from=$sConfiguratorTmp.values item=option name=config_option key=optionID}
+								{if $option["option_attributes"]["cf_subgroupid"]}
+									{if $option["option_attributes"]["cf_subgroupid"]==$group_parentid}
+									  {$parent_found=true}
+									{/if}
+								{/if}
+							  {/foreach}
+						  {/if}
+					  {/if}
+				  {/foreach}
+				  {if $parent_found}
+					 {$subgroups[] = $group_parentid}
+				  {/if}
+			  {/if}
+		  {/if}
+		{/if}
+	{/foreach}	
 
 	{foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
 		{$group_type = ""}
 		{$group_info = ""}
+		{$group_parentid = ""}
+		{$is_subgroup = false}		
 		{if $sConfigurator["group_attributes"]}
 			{if $sConfigurator["group_attributes"]["cf_grouptype"]}
 				{$group_type = $sConfigurator["group_attributes"]["cf_grouptype"]}
@@ -38,122 +73,67 @@
 			{if $sConfigurator["group_attributes"]["cf_groupinfo"]}
 				{$group_info = $sConfigurator["group_attributes"]["cf_groupinfo"]}
 			{/if}
+			{if $sConfigurator["group_attributes"]["cf_subgroupid"]}
+				{$group_parentid = $sConfigurator["group_attributes"]["cf_subgroupid"]}
+				{if ($group_parentid!="") && ($group_parentid!="0")}
+					{if in_array($group_parentid, $subgroups)}
+					  {$is_subgroup = true}				  
+					{/if}
+				{/if}
+			{/if}
 		{/if}
-
-		<div class="variant--group group-option-cf group-option-common-cf">
+		
+		{if $is_subgroup}
+			<div class="child_subgroup_{$group_parentid}_container" style="display:none;">
+		{else}
+			<div class="variant--group group-option-cf group-option-common-cf">
+		{/if}
 			{* Group name *}
 			{block name='frontend_detail_group_name'}
-				<p class="configurator--label">{$sConfigurator.groupname}:</p>
+				{if $is_subgroup}
+					{if $group_info!=""}
+					  <div>{$group_info}</div>
+					{else}
+					  <span class="configurator--label">{$sConfigurator.groupname}:{$sConfigurator.position}</span>
+					{/if}
+				{else}
+					<p class="configurator--label">{$sConfigurator.groupname}:</p>
+				{/if}
 			{/block}
-
+            
 			{$pregroupID=$groupID-1}
 
-			{if ($group_type!="RadioBox")}
-
-				{* Configurator drop down *}		
-				{block name='frontend_detail_group_selection'}
-					<div class="field--select{if $groupID gt 0 && empty($sArticle.sConfigurator[$pregroupID].user_selected)} is--disabled{/if}">
-						<span class="arrow"></span>
-					
-						<select{if $groupID gt 0 && empty($sArticle.sConfigurator[$pregroupID].user_selected)} disabled="disabled"{/if} name="group[{$sConfigurator.groupID}]" data-ajax-select-variants="true">
-
-							{* Please select... *}
-							{if empty($sConfigurator.user_selected)}
-								<option value="" selected="selected">{s name="DetailConfigValueSelect" namespace="frontend/detail/config_step"}{/s}</option>
-							{/if}
-
-							{foreach from=$sConfigurator.values item=configValue name=option key=optionID}
-								{assign var=optionID value=$configValue.optionID}
-								<option {if !$configValue.selectable}disabled{/if} {if $configValue.selected && $sConfigurator.user_selected} selected="selected"{/if} value="{$configValue.optionID}">
-									{$configValue.optionname}{if $configValue.upprice && !$configValue.reset} {if $configValue.upprice > 0}{/if}{/if}
-									{if !$configValue.selectable}{s name="DetailConfigValueNotAvailable" namespace="frontend/detail/config_step"}{/s}{/if}
-									{if $cf_show_markup}{if $cf_markups.$optionID.price_mod}<span class="{$cf_markups.$optionID.price_color_class}">{$cf_markups.$optionID.price_mod|currency}</span>{/if}{/if}
-								</option>
-							{/foreach}
-						</select>
-				
-						{if !empty($group_info)}
-							<p class="modal--size-table link-show-tooltip" data-content="" data-modalbox="true" data-targetSelector="a" 
-								data-width="640" data-height="480" data-mode="ajax">
-
-								<a href="javascript:void(0);" 
-									onclick="openModalInfo('{$sConfigurator.groupname}','{$group_info}')"
-									title="{s name='ShowTooltip' namespace='CardFormular'}{/s}">
-										<i class="icon--info2" ></i>&nbsp;{s name='ShowTooltip' namespace='CardFormular'}{/s}
-								</a>
-							</p>
-						{else}
-							<div class='product--options-spacer-cf'>&nbsp;</div> 
-						{/if}
-					</div>
-				{/block}
-
+			{if ($group_type=="RadioBox")}
+  			   {block name='frontend_detail_group_radiobox'}
+				 {include file="frontend/card_formular/detail/groups/radiobox.tpl"}	
+			   {/block}
+			{else} {if ($group_type=="TextFields")}			  
+			   {block name='frontend_detail_group_textfields'}
+				{include file="frontend/card_formular/detail/groups/textbox.tpl"}	
+			   {/block}
+			{else} {if ($group_type=="FrontBackSide")}
+			   {block name='frontend_detail_group_sidebox'}
+				{include file="frontend/card_formular/detail/groups/sidebox.tpl"}	
+			   {/block}
+			{else} {if ($group_type=="Container")}
+			   {block name='frontend_detail_group_container'}
+				{include file="frontend/card_formular/detail/groups/container.tpl"}	
+			   {/block}   
+			{else} {if ($group_type=="Upload")}
+			   {block name='frontend_detail_group_container'}
+				{include file="frontend/card_formular/detail/groups/upload.tpl"}	
+			   {/block}     
 			{else}
+			  {block name='frontend_detail_group_selection'}
+				{include file="frontend/card_formular/detail/groups/selectbox.tpl"}	
+			  {/block}
+			{/if}{/if}{/if}{/if}{/if}
 
-				{block name='frontend_detail_configurator_variant_group_options'}
-					{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
-						{assign var=optionID value=$option.optionID}
-						{block name='frontend_detail_configurator_variant_group_option'}
-							<div class="variant--option{if $option.media} is--image{/if}">
-								<span class="arrow"></span>
-								{block name='frontend_detail_configurator_variant_group_option_input'}
-									<input type="radio"
-										class="option--input"
-										id="group[{$option.groupID}][{$option.optionID}]"
-										name="group[{$option.groupID}]"
-										value="{$option.optionID}"
-										title="{$option.optionname}"
-										data-ajax-select-variants="true"
-										{if !$option.selectable || ($groupID gt 0 && empty($sArticle.sConfigurator[$pregroupID].user_selected))}disabled="disabled"{/if}
-										{if $option.selected && $option.selectable}checked="checked"{/if} />
-								{/block}
-								{block name='frontend_detail_configurator_variant_group_option_label'}
-									<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label{if !$option.selectable} is--disabled{/if}">
-										{if $option.media}
-											{$media = $option.media}
-											{block name='frontend_detail_configurator_variant_group_option_label_image'}
-												<span class="image--element">
-													<span class="image--media">
-														{if isset($media.thumbnails)}
-															<img srcset="{$media.thumbnails[0].sourceSet}" alt="{$option.optionname}" />
-														{else}
-															<img src="{link file='frontend/_public/src/img/no-picture.jpg'}" alt="{$option.optionname}">
-														{/if}
-													</span>
-												</span>
-											{/block}
-										{else}
-											{block name='frontend_detail_configurator_variant_group_option_label_text'}
-												{$option.optionname}
-											{/block}
-										{/if}
-									</label>
-
-									{if $cf_show_markup}
-										{if $cf_markups.$optionID.price_mod}
-										<span class="{$cf_markups.$optionID.price_color_class}">{$cf_markups.$optionID.price_mod|currency}</span>
-										{/if}
-									{/if}
-								{/block}
-							</div>
-						{/block}
-					{/foreach}
-				{/block}
-
-				{if !empty($group_info)}
-					<p class="modal--size-table link-show-tooltip" data-content="" data-modalbox="true" data-targetSelector="a" 
-						data-width="640" data-height="480" data-mode="ajax">
-						<a href="javascript:void(0);" 
-							onclick="openModalInfo('{$sConfigurator.groupname}','{$group_info}')"
-							title="{s name='ShowTooltip' namespace='CardFormular'}{/s}">
-							<i class="icon--info2" ></i>&nbsp;{s name='ShowTooltip' namespace='CardFormular'}{/s}
-						</a>
-					</p>
-				{else}
-					<div class='product--options-spacer-cf'>&nbsp;</div> 
-					<div class='product--options-spacer-cf'>&nbsp;</div> 
-				{/if}
-			{/if}		
+			{if !($is_subgroup)}
+				{block name='frontend_detail_group_radio_info'}					
+					{include file="frontend/card_formular/detail/groups/infolink.tpl"}					
+				{/block}	
+			{/if}
 		</div>	
 	{/foreach}	
 
@@ -162,6 +142,13 @@
 			<input name="recalc" type="submit" value="{s name='DetailConfigActionSubmit' namespace='frontend/detail/config_step'}{/s}" />
 		</noscript>
 	{/block}
+
+	{block name='frontend_detail_configurator_subgroup_script_action'}
+  	<script>
+	  var aSubGroupsArray = new Array({$cnt=0}{foreach from=$subgroups item=sI}{if $cnt>0},{/if}"{$sI}"{/foreach});
+	</script>
+	{/block}
+
 </form>
 
 {block name='frontend_detail_configurator_step_reset'}

@@ -1,23 +1,47 @@
 function setQtyTextInputVal(obj, is_forced, min_val, max_val) {
-				  	var new_val = "";
-				  	if ((obj.value == "") && !(is_forced))  {
-				  		new_val = min_val;
-				  	} else {
-				  		new_val = Math.min(Math.max(obj.value - 0, min_val), max_val);
-				  		obj.value = new_val;
-				  	}
-				  	var elem = document.getElementById('sQuantity');
-				  	if (elem) {
-				  	  elem.value = new_val;
-				    }
+    var new_val = "";
+    if ((obj.value == "") && !(is_forced))  {
+    	new_val = min_val;
+    } else {
+    	new_val = Math.min(Math.max(obj.value - 0, min_val), max_val);
+    	obj.value = new_val;
+    }
+    var elem = document.getElementById('sQuantity');
+    if (elem) {
+      elem.value = new_val;
+    }
 }
+
+function setSubgroupParentObj(id) {
+   var srcObj = document.getElementsByClassName("child_subgroup_"+id+"_container");
+   var targetObj = document.getElementById("parent_subgroup_"+id+"_container");
+   if ((srcObj) && (targetObj)) {
+        var i;
+        for (i = 0; i < srcObj.length; i++) {
+            targetObj.appendChild(srcObj[i]);
+            srcObj[i].style.display = 'inline';
+        }    
+      
+   }
+}
+
+function executeSetSubgroupParentObj() {
+ if (typeof(aSubGroupsArray) !== 'undefined')  {
+  for (var i = 0; i < aSubGroupsArray.length; i++) {
+    setSubgroupParentObj(aSubGroupsArray[i]);
+  }
+ }
+}    
+
+executeSetSubgroupParentObj();
 
 function openModalInfo(title_str, content_str) {
 	$.modal.open('<div style="padding:0 20px 20px 20px"><div style="width:100%"><h2>'+title_str+'</h2></div><div style="width:100%">'+content_str+'</div></div>', { title: title_str});
 }
 
 $.subscribe('plugin/swAjaxVariant/onRequestData', function(me, response, values, location) {
-	StateManager.addPlugin('select:not([data-no-fancy-select="true"])', 'swSelectboxReplacement')
+	executeSetSubgroupParentObj();
+    StateManager.addPlugin('select:not([data-no-fancy-select="true"])', 'swSelectboxReplacement')
 		.addPlugin('*[data-image-slider="true"]', 'swImageSlider', { touchControls: true })
 		.addPlugin('.product--image-zoom', 'swImageZoom', 'xl')
 		.addPlugin('*[data-image-gallery="true"]', 'swImageGallery')
