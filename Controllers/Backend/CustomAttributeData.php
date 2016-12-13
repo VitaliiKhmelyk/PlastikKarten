@@ -54,4 +54,40 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
         } 
     } 
 
+    public function changeConfiguratorGroupPositionAction()
+    {
+        $data = $this->Request()->getParam('data');
+        $positions = json_decode($data); 
+        $cnt = 0;
+        foreach ($positions as $obj) {   
+            $a =  (array) $obj;
+            $cnt += 1;
+            try {
+               $sql = "UPDATE s_article_configurator_groups SET position = ".$a["position"]." WHERE id = ".$a["groupId"];
+               Shopware()->Db()->query($sql);
+            } catch (Exception $e) {
+               die(json_encode(array('success' => false, 'message' => $e->getMessage())));
+            }     
+        }   
+        die(json_encode(array('success' => ($cnt > 0))));
+    }
+    
+    public function changeConfiguratorOptionPositionAction()
+    {
+        $data = $this->Request()->getParam('data');
+        $positions = json_decode($data); 
+        $cnt = 0;
+        foreach ($positions as $obj) {   
+            $a =  (array) $obj;
+            $cnt += 1;
+            try {
+               $sql = "UPDATE s_article_configurator_options SET position = ".$a["position"]." WHERE id = ".$a["optionId"];
+               Shopware()->Db()->query($sql);
+            } catch (Exception $e) {
+               die(json_encode(array('success' => false, 'message' => $e->getMessage())));
+            }     
+        }   
+        die(json_encode(array('success' => ($cnt > 0))));
+    }    
+
 }

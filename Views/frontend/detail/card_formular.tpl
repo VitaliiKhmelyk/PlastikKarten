@@ -170,14 +170,19 @@
                                {$myProductInfo=""}  
                                {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
                                  {$curOptionInfo=""}
-                                 {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
-                                    {if ($groupID gt 0 && empty($sArticle.sConfigurator[$groupID-1].user_selected))}{else}
-                                     {if $configValue.selected && $sConfigurator.user_selected}
-                                        {$curOptionInfoName=$configValue.optionname}
-                                        {$curOptionInfo=$curOptionInfo|cat:"<span>"|cat:$curOptionInfoName|cat:"; </span>"}               
-                                     {/if}
-                                    {/if}
-                                 {/foreach}      
+                                 {if $sConfigurator["group_attributes"]["cf_grouptype"]}
+                                   {$group_type = $sConfigurator["group_attributes"]["cf_grouptype"]}
+                                 {else}
+                                   {$group_type = "SelectBox"}
+                                 {/if}   
+                                 {if ($group_type=="SelectBox")||($group_type=="RadioBox")}
+                                     {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
+                                        {if $configValue.selected && $sConfigurator.user_selected}                                        
+                                            {$curOptionInfoName=$configValue.optionname}
+                                            {$curOptionInfo=$curOptionInfo|cat:"<span>"|cat:$curOptionInfoName|cat:"; </span>"}  
+                                        {/if}                                        
+                                     {/foreach}  
+                                 {/if}     
                                  {if !empty($curOptionInfo)}
                                     {$curOptionInfoName=$sConfigurator.groupname}
                                     {$myProductInfo=$myProductInfo|cat:"<p><span class='configurator--label'>"|cat:$curOptionInfoName|cat:": </span>"|cat:$curOptionInfo|cat:"</p>"}            

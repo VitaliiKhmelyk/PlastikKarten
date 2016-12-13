@@ -70,6 +70,71 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
         });
     },
 
+    onGroupDropped: function(source, target) {
+       var me = this;           
+       me.callParent(arguments);
+       var groupListing = me.getConfiguratorGroupListing();
+       var orderedItems = [];
+           groupListing.getStore().each(function(item) {
+               orderedItems.push({
+                    position: item.get('position'),
+                    groupId: item.get('id')
+                });
+       });
+       Ext.Ajax.request({
+            url: '{url controller=CustomAttributeData action=changeConfiguratorGroupPosition}',
+            method: 'POST',
+            params: {
+                data : Ext.encode(orderedItems)
+            },
+            success: function() {
+                Shopware.Notification.createGrowlMessage(me.snippets.success.title, Ext.String.format(me.snippets.success.groupSave, ""), me.snippets.growlMessage);
+            },
+            failure: function(message) {
+                var message0 = Ext.String.format(me.snippets.failure.groupSave, "") + '<br>';
+                if (Ext.isString(message) && message.length > 0) {
+                    message = message0 + message;
+                } else {
+                    message = message0 + me.snippets.failure.noMoreInformation;
+                }
+                Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
+            }
+        });
+    }, 
+
+    onOptionDropped: function(source, target) {
+       var me = this;           
+       me.callParent(arguments);
+       var optionListing = me.getConfiguratorOptionListing();
+       var orderedItems = [];
+           optionListing.getStore().each(function(item) {
+               orderedItems.push({
+                    position: item.get('position'),
+                    optionId: item.get('id')
+                });
+       });
+       Ext.Ajax.request({
+            url: '{url controller=CustomAttributeData action=changeConfiguratorOptionPosition}',
+            method: 'POST',
+            params: {
+                data : Ext.encode(orderedItems)
+            },
+            success: function() {
+                Shopware.Notification.createGrowlMessage(me.snippets.success.title, Ext.String.format(me.snippets.success.optionSave, ""), me.snippets.growlMessage);
+            },
+            failure: function(message) {
+                var message0 = Ext.String.format(me.snippets.failure.optionSave, "") + '<br>';                
+                if (Ext.isString(message) && message.length > 0) {
+                    message = message0 + message;
+                } else {
+                    message = message0 + me.snippets.failure.noMoreInformation;
+                }
+                Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
+            }
+        });    
+
+    },    
+
 });
 
 //{/block}

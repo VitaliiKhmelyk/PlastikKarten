@@ -22,8 +22,14 @@
 
 	{* Description *}
 	{block name='frontend_detail_proposals_text'}
-        <div class="product--proposals">
-            Something will be here
+        <div class="product--proposals"> 
+            {if !$sArticle.liveshoppingData.valid_to_ts && $sArticle.sBlockPrices && !$sArticle.liveshoppingData.valid_to_ts}            
+                {block name="frontend_detail_data_block_price_include2"}
+                    {include file="frontend/detail/block_price.tpl" sArticle=$sArticle}
+                {/block}
+            {else}
+                {s name="DetailProposalsNotAvailable" namespace="CardFormular"}Special price is not available{/s}
+            {/if}
         </div>
 	{/block}
 

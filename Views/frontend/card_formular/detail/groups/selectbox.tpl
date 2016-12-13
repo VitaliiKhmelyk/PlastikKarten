@@ -4,7 +4,7 @@
 <tr><td>
 <select name="group[{$sConfigurator.groupID}]" data-ajax-select-variants="true">
 	{if empty($sConfigurator.user_selected)}
-		<option value="" selected="selected">{s name="DetailConfigValueSelect" namespace="frontend/detail/config_step"}--Select value---{/s}</option>
+		<option value="" selected="selected">{s name="DetailConfigValueSelect" namespace="frontend/detail/config_step"}Please select{/s}</option>
 	{/if}
 	{foreach from=$sConfigurator.values item=configValue name=option key=optionID}
 		{assign var=optionID value=$configValue.optionID}
