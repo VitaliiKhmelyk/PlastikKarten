@@ -71,7 +71,7 @@
         </td></tr>
         </table>    
         {/if}
-   {/block}
+   {/block}   
  {/block}
 
  {block name='frontend_detail_index_buy_container'}

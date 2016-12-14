@@ -26,13 +26,30 @@
 <td class="td-color-cf">
 	<div class="variant--option">
 	{block name='frontend_detail_configurator_variant_group_option_input'}
-		<input type="text"
+		<!--div class="js--modal sizing--content" style="width: 600px; height: auto; display: block; opacity: 1;">
+			<div class="header">
+				<div class="title">
+					{$option.optionname}
+				</div>
+			</div>
+			<div class="content">
+				Modal box content
+			</div>
+			<div class="btn icon--cross is--small btn--grey modal--close">
+			</div>
+		</div>
+
+		<input type="button"
 			class="option--input"
 			id="customgroup[{$option.groupID}][{$option.optionID}]"
 			name="customgroup[{$option.groupID}][{$option.optionID}]"
 			value=""
 			title="{$option.optionname}"
-			/>
+			data-modalbox="true"
+			/-->
+		<p class="modal--size-table" data-content="" data-modalbox="true" data-targetSelector="a" data-width="400" data-height="400" data-mode="ajax">
+			<a class="block btn is--secondary is--center is--large" href="{url controller=CardFormularUpload action=modal sOption=$option.optionID}">{$option.optionname}</a>
+		</p>
 	{/block}						
 	</div>
 </td>

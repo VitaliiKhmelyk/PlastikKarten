@@ -53,23 +53,14 @@ private $dbeConfGroupFilelds = array(
               'support'=>'Set subgroup ID', 
               'data'=>''
               ),
-       array('name'=>'workflowstage', 
-              'type'=>'integer', 
-              'column_type'=>'int(11)',
-              'label'=>'Workflow tag', 
+       array('name'=>'workflowlabel', 
+              'type'=>'string', 
+              'column_type'=>'varchar(500)',
+              'label'=>'Workflow label', 
               'help'=>'Sets stage for the group in frontend workflow', 
-              'support'=>'Set frontend workflow tag', 
+              'support'=>'Set frontend workflow label', 
               'data'=>''
-              ),
-       array('name'=>'position', 
-              'type'=>'integer', 
-              'column_type'=>'int(11)',
-              'label'=>'Position', 
-              'help'=>'', 
-              'support'=>'', 
-              'data'=>'',
-              'customtype'=>'position'
-              )        
+              )      
     );
 
 private $dbeConfOptionFilelds = array(       
@@ -97,15 +88,6 @@ private $dbeConfOptionFilelds = array(
               'help'=>'Sets subgroup ID to build dependencies with other groups', 
               'support'=>'Set subgroup ID', 
               'data'=>''
-              ),
-         array('name'=>'position', 
-              'type'=>'integer', 
-              'column_type'=>'int(11)',
-              'label'=>'Position', 
-              'help'=>'', 
-              'support'=>'', 
-              'data'=>'',
-              'customtype'=>'position'
               )
     );
 
@@ -152,8 +134,8 @@ public function registerControllers()
 {
    $this->registerController('backend', 'customattributedata');
    $this->registerController('frontend', 'customattributedata');
+   $this->registerController('frontend', 'CardFormularUpload');
 }
-
 
 ///////////////////////////////////////////////////
 
@@ -245,13 +227,21 @@ public function CreateEvents()
 public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
     $params = $args->getReturn();
     $all_groups=$params["sConfigurator"];
+    $workflow=array();
     if ($all_groups) {
       $cnt=0;
       foreach ($all_groups as $grp) {
          if ($grp["groupID"]) {
             $data = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_groups_attributes WHERE groupID = ?", [$grp["groupID"]]);
             if (count($data) > 0) {
-              $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];
+              $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];              
+              $cur_workflow=$data[0]["cf_workflowlabel"];
+              if ((!isset($cur_workflow)) || (empty($cur_workflow)) || ($cur_workflow=="")) {
+                $cur_workflow="default";
+              }
+              if (!in_array($cur_workflow, $workflow)) {
+                 $workflow[]=$cur_workflow;
+              }
             }
             $all_values=$grp["values"];
             if ($all_values) {  
@@ -275,6 +265,10 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
          $cnt+=1;
       }
     }
+    if (!count($workflow)>0) {
+      $workflow[]="default";
+    }
+    $params["sWorkflow"]=$workflow;
     $args->setReturn($params);
 }
 
@@ -334,6 +328,7 @@ public function onBackendBasePostDispatch(Enlight_Event_EventArgs $args)
         $view->extendsTemplate('backend/cardformular_extend_base/attribute/Shopware.attribute.Form.js');
     }
 }
+
 
 public function afterBackendArticleLoadStoresAction(Enlight_Event_EventArgs $args)
 {
@@ -449,7 +444,7 @@ public function CreateForm()
     array(
       'label'     => 'If the downloaded file is different from the specified dimensions',
       'scope'     => \Shopware\Models\Config\Element::SCOPE_SHOP,
-      'required'  => false,
+      'required'  => true,
       'store'     => $errorMessagesArray,
     )
   );
@@ -595,6 +590,7 @@ public function ftpUpload($fileData)
     return 0;
   }
 }
+
 public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
 {
     $controller = $args->getSubject();
@@ -612,6 +608,7 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
     $view->assign('cf_markups', $markups);
 
     if($sArticle['template'] == 'card_formular.tpl') {
+      $view->extendsTemplate('frontend/detail/hidden.tpl');
       $view->extendsTemplate('frontend/detail/card_formular.tpl');
       $view->extendsTemplate('frontend/detail/scripts.tpl');
     }

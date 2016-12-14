@@ -12,6 +12,52 @@ function setQtyTextInputVal(obj, is_forced, min_val, max_val) {
     }
 }
 
+function setWorkflowStage(stage_idx) {
+ var prefix = "workflow_stage_";
+ var idx = 0;
+ var srcObj;
+ if ((stage_idx) || (stage_idx==0))  {
+   idx = stage_idx
+ } else {
+   srcObj = document.getElementById("cf_custom_workflow_stage"); 
+   if (srcObj) {
+     idx = parseInt(srcObj.value);
+   }
+ }
+ var maxVobj = document.getElementById(prefix + "cnt_");
+ if ((maxVobj)&&(parseInt(maxVobj.value)>1)) {
+    var maxV = parseInt(maxVobj.value);    
+    var i;   
+    var j;
+    for (i = 0; i < maxV; i++) {
+      if (i != idx) {
+        srcObj = document.getElementsByClassName(prefix+i.toString());
+        for (j = 0; j < srcObj.length; j++) {
+            srcObj[j].style.display = 'none';
+        }  
+        srcObj = document.getElementById(prefix+"cnt_"+i.toString()); 
+        if (srcObj) {
+            srcObj.classList.remove('is--primary');
+            srcObj.classList.add('is--secondary');
+        } 
+      }      
+    }  
+    srcObj = document.getElementsByClassName(prefix+idx.toString());
+    for (j = 0; j < srcObj.length; j++) {
+      srcObj[j].style.display = 'block';
+    } 
+    srcObj = document.getElementById(prefix+"cnt_"+idx.toString()); 
+    if (srcObj) {
+      srcObj.classList.remove('is--secondary');
+      srcObj.classList.add('is--primary');
+    }  
+    srcObj = document.getElementById("cf_custom_workflow_stage"); 
+    if (srcObj) {
+      srcObj.value = idx;
+    }   
+ }
+}    
+
 function setSubgroupParentObj(id) {
    var srcObj = document.getElementsByClassName("child_subgroup_"+id+"_container");
    var targetObj = document.getElementById("parent_subgroup_"+id+"_container");
@@ -30,10 +76,11 @@ function executeSetSubgroupParentObj() {
   for (var i = 0; i < aSubGroupsArray.length; i++) {
     setSubgroupParentObj(aSubGroupsArray[i]);
   }
- }
+ } 
 }    
 
 executeSetSubgroupParentObj();
+setWorkflowStage();
 
 function openModalInfo(title_str, content_str) {
 	$.modal.open('<div style="padding:0 20px 20px 20px"><div style="width:100%"><h2>'+title_str+'</h2></div><div style="width:100%">'+content_str+'</div></div>', { title: title_str});
@@ -41,6 +88,7 @@ function openModalInfo(title_str, content_str) {
 
 $.subscribe('plugin/swAjaxVariant/onRequestData', function(me, response, values, location) {
 	executeSetSubgroupParentObj();
+    setWorkflowStage();
     StateManager.addPlugin('select:not([data-no-fancy-select="true"])', 'swSelectboxReplacement')
 		.addPlugin('*[data-image-slider="true"]', 'swImageSlider', { touchControls: true })
 		.addPlugin('.product--image-zoom', 'swImageZoom', 'xl')

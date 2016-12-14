@@ -33,6 +33,33 @@
 		<div class="product--data-spacer-cf"></div>
 	</div>	
 
+	{block name='frontend_detail_workflow'}
+        {$workflow_length=count($sArticle.sWorkflow)}
+        <input type="hidden" id="workflow_stage_cnt_" value="{$workflow_length}">  
+        {if $workflow_length > 1}
+	     <div>
+	        <table style="width:auto">
+	        <tr>
+	          {$cnt=0}
+	          {foreach from=$sArticle.sWorkflow item=sWorkflow}            
+	            <td style="padding:0 10px 20px 0">
+	            <a href="javascript:void(0)" 
+	               id="workflow_stage_cnt_{$cnt}"
+	               class="block btn is--secondary is--icon-right is--center is--small" 
+	               title='{if $sWorkflow=="default"}{s name="DefaultWorkflow" namespace="CardFormular"}General{/s}{else}{$sWorkflow}{/if}'
+	               onclick="setWorkflowStage({$cnt});">
+	            	{if $sWorkflow=="default"}{s name="DefaultWorkflow" namespace='CardFormular'}General{/s}{else}{$sWorkflow}{/if}
+	            	<i class="icon--arrow-down3"></i>
+	            </a>
+	            </td>
+	            {$cnt=$cnt+1}
+	          {/foreach}
+	        </tr>
+	        </table>  
+	   </div>       
+        {/if}
+   {/block}
+
 	{$subgroups = array()}
 	{foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
 		{if $sConfigurator["group_attributes"]["cf_subgroupid"]}
@@ -65,7 +92,9 @@
 		{$group_type = ""}
 		{$group_info = ""}
 		{$group_parentid = ""}
-		{$is_subgroup = false}		
+		{$group_workflow = "default"}
+		{$group_workflow_idx = ""} 
+		{$is_subgroup = false}
 		{if $sConfigurator["group_attributes"]}
 			{if $sConfigurator["group_attributes"]["cf_grouptype"]}
 				{$group_type = $sConfigurator["group_attributes"]["cf_grouptype"]}
@@ -81,12 +110,22 @@
 					{/if}
 				{/if}
 			{/if}
+			{if ($sConfigurator["group_attributes"]["cf_workflowlabel"]) && ($sConfigurator["group_attributes"]["cf_workflowlabel"]!="")}
+				{$group_workflow = $sConfigurator["group_attributes"]["cf_workflowlabel"]}
+			{/if}
 		{/if}
+		{$cnt=0}		
+		{foreach from=$sArticle.sWorkflow item=sWorkflow}
+		  {if $group_workflow==$sWorkflow}
+		    {$group_workflow_idx=$cnt}
+		  {/if} 	
+		  {$cnt=$cnt+1}	
+		{/foreach}
 		
 		{if $is_subgroup}
 			<div class="child_subgroup_{$group_parentid}_container" style="display:none;">
 		{else}
-			<div class="variant--group group-option-cf group-option-common-cf">
+			<div class="variant--group group-option-cf group-option-common-cf workflow_stage_{$group_workflow_idx}" {if count($sArticle.sWorkflow)>1}style="display:none;"{/if}>
 		{/if}
 			{* Group name *}
 			{block name='frontend_detail_group_name'}
