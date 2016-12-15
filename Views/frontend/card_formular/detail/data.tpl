@@ -25,10 +25,23 @@
 
 {if $sArticle.sBlockPrices && !$sArticle.liveshoppingData.valid_to_ts}      
     {block name="frontend_detail_data_block_price_include"}
-   		{include file="frontend/card_formular/detail/data_price.tpl"}
+       <div class="product--price price--default{if $sArticle.has_pseudoprice} price--discount{/if}">
+   		{* Default price *}
+        {include file="frontend/card_formular/detail/data_price1.tpl"}
+        {* Discount price *}
+        {include file="frontend/card_formular/detail/data_price2.tpl"}
+   	   </div>	
    		<div class='product--price price--unit'>{$curQuantity} X {$curPrice}</div>
     {/block}      
 {/if}
+
+{block name='frontend_detail_data_price_configurator'}
+   {include file="frontend/card_formular/detail/data_price1.tpl"}
+{/block}  
+
+{block name='frontend_detail_data_pseudo_price'}        
+   {include file="frontend/card_formular/detail/data_price2.tpl"}
+{/block} 
 
 {if $sArticle.purchaseunit}
 {block name='frontend_detail_data_price'}	

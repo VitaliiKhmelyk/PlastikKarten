@@ -1,23 +1,6 @@
 <div class="field--select">
 <span class="arrow"></span>
 
-{$cnt=0}
-{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
-  {if $cnt==0}
-    {block name='frontend_detail_configurator_variant_group_option_input'}
-		<input type="radio"
-			class="option--input"
-			id="group[{$option.groupID}][{$option.optionID}]"
-			name="group[{$option.groupID}]"
-			value="{$option.optionID}"
-			checked="checked"
-			style="display:none;"
-			/>
-	{/block}	
-  {/if}
-  {$cnt=$cnt+1}
-{/foreach}
-
 <table>
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
 {assign var=optionID value=$option.optionID}

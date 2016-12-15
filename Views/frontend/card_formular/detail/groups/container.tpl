@@ -1,31 +1,18 @@
 <div class="field--select">
 <span class="arrow"></span>
 
-{$cnt=0}
+{$groupnameprefix="custom"}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
 	{block name='frontend_detail_configurator_variant_group_option_input'}
 		<input type="text"
 			class="option--input"
 			id="customgroup[{$option.groupID}][{$option.optionID}]"
-			name="customgroup[{$option.groupID}][{$option.optionID}]"
+			name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			value=""
 			title="{$option.optionname}"
 			style="display:none;"
 			/>
-	{/block}
-	{if $cnt==0}
-	    {block name='frontend_detail_configurator_variant_group_option_input'}
-			<input type="radio"
-				class="option--input"
-				id="group[{$option.groupID}][{$option.optionID}]"
-				name="group[{$option.groupID}]"
-				value="{$option.optionID}"
-				checked="checked"
-				style="display:none;"
-				/>
-		{/block}	
-    {/if}
-    {$cnt=$cnt+1}	
+	{/block}	
 {/foreach}
 <table>
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}

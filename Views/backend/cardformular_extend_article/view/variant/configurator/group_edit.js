@@ -10,7 +10,7 @@ Ext.define('Shopware.apps.CardformularExtendArticle.view.variant.configurator.Gr
     override: 'Shopware.apps.Article.view.variant.configurator.GroupEdit',
    
     width:800,
-    height:680,
+    height:740,
 
     /**
      * Overrides the createItems function of the overridden ExtJs object  

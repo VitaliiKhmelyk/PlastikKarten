@@ -18,6 +18,11 @@
   {/if}
 {/foreach}
 
+{$groupnameprefix=""}
+{if ($sConfigurator["pseudo"])}
+  {$groupnameprefix="custom"}
+{/if}
+
 <table>
 
 {if $is_horizontal}
@@ -50,7 +55,7 @@
 		  	<input type="radio"
 				class="option--input"
 				id="group[{$option.groupID}][{$option.optionID}]"
-				name="group[{$option.groupID}]"
+				name="{$groupnameprefix}group[{$option.groupID}]"
 				value="{$option.optionID}"
 				title="{$option.optionname}"
 				data-ajax-select-variants="true"
@@ -105,7 +110,7 @@
 		<input type="radio"
 			class="option--input"
 			id="group[{$option.groupID}][{$option.optionID}]"
-			name="group[{$option.groupID}]"
+			name="{$groupnameprefix}group[{$option.groupID}]"
 			value="{$option.optionID}"
 			title="{$option.optionname}"
 			data-ajax-select-variants="true"

@@ -1,23 +1,7 @@
 <div class="field--select">
 <span class="arrow"></span>
 
-{$cnt=0}
-{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
-  {if $cnt==0}
-    {block name='frontend_detail_configurator_variant_group_option_input'}
-		<input type="radio"
-			class="option--input"
-			id="group[{$option.groupID}][{$option.optionID}]"
-			name="group[{$option.groupID}]"
-			value="{$option.optionID}"
-			checked="checked"
-			style="display:none;"
-			/>
-	{/block}	
-  {/if}
-  {$cnt=$cnt+1}
-{/foreach}
-
+{$groupnameprefix="custom"}
 <table>
 <tr>
 	{$cnt=0}
@@ -26,7 +10,7 @@
 			<td class="td-color-cf" >
 			  <div class="variant--option">
 				{block name='frontend_detail_configurator_variant_group_option_label'}
-				<label for="customgroup[{$option.groupID}][{$option.optionID}]" class="option--label">
+				<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
 					{block name='frontend_detail_configurator_variant_group_option_label_text'}
 						{$option.optionname}
 					{/block}
@@ -66,8 +50,8 @@
 			  	{block name='frontend_detail_configurator_variant_group_option_input'}
 					<input type="text"
 						class="option--input"
-						id="customgroup[{$option.groupID}][{$option.optionID}]"
-						name="customgroup[{$option.groupID}][{$option.optionID}]"
+						id="group[{$option.groupID}][{$option.optionID}]"
+						name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 						value=""
 						title="{$option.optionname}"
 					/>

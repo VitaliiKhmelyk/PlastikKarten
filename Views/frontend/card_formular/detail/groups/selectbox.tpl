@@ -2,7 +2,11 @@
 <span class="arrow"></span>
 <table>
 <tr><td>
-<select name="group[{$sConfigurator.groupID}]" data-ajax-select-variants="true">
+{$groupnameprefix=""}
+{if ($sConfigurator["pseudo"])}
+  {$groupnameprefix="custom"}
+{/if}
+<select name="{$groupnameprefix}group[{$sConfigurator.groupID}]" data-ajax-select-variants="true">
 	{if empty($sConfigurator.user_selected)}
 		<option value="" selected="selected">{s name="DetailConfigValueSelect" namespace="frontend/detail/config_step"}Please select{/s}</option>
 	{/if}

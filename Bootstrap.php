@@ -26,6 +26,9 @@ private $clearCache = array(
         'template', 'backend', 'proxy'
     );
 
+private $cf_template = "card_formular.tpl";  
+private $cf_template_name = 'PlastikKarten';
+
 private $cf_prefix = 'cf';
 
 private $dbeConfGroupFilelds = array(
@@ -34,7 +37,7 @@ private $dbeConfGroupFilelds = array(
               'column_type'=>'mediumtext',
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
-              'support'=>'Select type of option group elements', 
+              'support'=>'', 
               'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text inputs"},{"key":"FrontBackSide","value":"Surface design"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"}]'
               ),
         array('name'=>'groupinfo', 
@@ -42,7 +45,7 @@ private $dbeConfGroupFilelds = array(
               'column_type'=>'mediumtext',
               'label'=>'Group info', 
               'help'=>'Sets additional information for the group', 
-              'support'=>'Set additional information', 
+              'support'=>'', 
               'data'=>''
               ),
        array('name'=>'subgroupid', 
@@ -50,7 +53,7 @@ private $dbeConfGroupFilelds = array(
               'column_type'=>'int(11)',
               'label'=>'Subgroup ID', 
               'help'=>'Sets subgroup ID to build dependencies with other options', 
-              'support'=>'Set subgroup ID', 
+              'support'=>'', 
               'data'=>''
               ),
        array('name'=>'workflowlabel', 
@@ -58,9 +61,17 @@ private $dbeConfGroupFilelds = array(
               'column_type'=>'varchar(500)',
               'label'=>'Workflow label', 
               'help'=>'Sets stage for the group in frontend workflow', 
-              'support'=>'Set frontend workflow label', 
+              'support'=>'', 
               'data'=>''
-              )      
+              ),
+       array('name'=>'pseudo', 
+              'type'=>'boolean', 
+              'column_type'=>'int(1)',
+              'label'=>'Skip variants', 
+              'help'=>'Allows to ignore current group during variants generation (for Selector and Radio buttons only)', 
+              'support'=>'', 
+              'data'=>''
+              )             
     );
 
 private $dbeConfOptionFilelds = array(       
@@ -69,7 +80,7 @@ private $dbeConfOptionFilelds = array(
               'column_type'=>'varchar(500)',
               'label'=>'Option info', 
               'help'=>'Sets additional information for the option', 
-              'support'=>'Set additional information', 
+              'support'=>'', 
               'data'=>''
               ),        
         array('name'=>'mediaid', 
@@ -86,7 +97,7 @@ private $dbeConfOptionFilelds = array(
               'column_type'=>'int(11)',
               'label'=>'Subgroup ID', 
               'help'=>'Sets subgroup ID to build dependencies with other groups', 
-              'support'=>'Set subgroup ID', 
+              'support'=>'', 
               'data'=>''
               )
     );
@@ -222,53 +233,111 @@ public function CreateEvents()
   $this->subscribeEvent('sArticles::sGetArticleById::after', 'onArticleGetProduct');
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Detail','onFrontendDetailPostDispatch');
   $this->subscribeEvent('Shopware_Controllers_Backend_Article::loadStoresAction::after', 'afterBackendArticleLoadStoresAction');
+
+  $this->subscribeEvent('Legacy_Struct_Converter_Convert_Configurator_Set', 'onFilterConvertConfiguratorStruct');
+  $this->subscribeEvent('Legacy_Struct_Converter_Convert_Configurator_Price', 'onFilterConvertConfiguratorPrice');
+}
+
+public function isPseudoGroup($id) {
+  $res = false; 
+  $sql = "SELECT cf_pseudo, cf_grouptype FROM s_article_configurator_groups_attributes WHERE groupID = ".$id;
+  $data = Shopware()->Db()->fetchAll($sql);
+  if ($data) {
+    $t = $data[0]["cf_grouptype"]; 
+    if (($data[0]["cf_pseudo"] == 1) || (($t!="RadioBox") && ($t!="SelectBox") && (!empty($t)))) {
+      $res = true; 
+    } 
+  }  
+  return $res;
+}  
+
+public function checkConfiguratorSetSelectionSpecified(StoreFrontBundle\Struct\Configurator\Set $set) {
+  //$res = $set->isSelectionSpecified();  
+  $res = true;  
+  foreach ($set->getGroups() as $group) {
+     if ((!$group->isSelected()) && (!$this->isPseudoGroup($group->getId()))) {
+        $res = false;
+     }
+  }
+  return $res;
+}
+
+public function onFilterConvertConfiguratorStruct(Enlight_Event_EventArgs $args) {
+  $set = $args->get('configurator_set'); 
+  $result = $args->getReturn();
+  if (!$result['isSelectionSpecified']) {
+    $result["isSelectionSpecified"] = $this->checkConfiguratorSetSelectionSpecified($set);
+  }     
+  return $result;
+}
+
+public function onFilterConvertConfiguratorPrice(Enlight_Event_EventArgs $args) {
+  $set = $args->get('configurator_set'); 
+  $result = $args->getReturn();
+  if ($this->checkConfiguratorSetSelectionSpecified($set)) {
+    $result=[];
+  }     
+  return $result;
 }
 
 public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
     $params = $args->getReturn();
-    $all_groups=$params["sConfigurator"];
-    $workflow=array();
-    if ($all_groups) {
-      $cnt=0;
-      foreach ($all_groups as $grp) {
-         if ($grp["groupID"]) {
-            $data = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_groups_attributes WHERE groupID = ?", [$grp["groupID"]]);
-            if (count($data) > 0) {
-              $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];              
-              $cur_workflow=$data[0]["cf_workflowlabel"];
-              if ((!isset($cur_workflow)) || (empty($cur_workflow)) || ($cur_workflow=="")) {
-                $cur_workflow="default";
+    if ($params["template"] == $this->cf_template) {
+      $all_groups=$params["sConfigurator"];
+      $workflow=array();
+      if ($all_groups) {
+        $cnt=0;
+        foreach ($all_groups as $grp) {                      
+           if ($grp["groupID"]) {
+              $all_values=$grp["values"];
+              if ($this->isPseudoGroup($grp["groupID"]))  {
+                 $params["sConfigurator"][$cnt]["pseudo"] = true;
+                 if ($all_values) {
+                   foreach ($all_values as $v) {
+                      $id=$v["optionID"];
+                      if ($id) { 
+                        $params["sConfigurator"][$cnt]["values"][$id]["selectable"] = true;
+                      }
+                   }
+                 }
+              } 
+              $data = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_groups_attributes WHERE groupID = ?", [$grp["groupID"]]);
+              if (count($data) > 0) {
+                $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];              
+                $cur_workflow=$data[0]["cf_workflowlabel"];
+                if ((!isset($cur_workflow)) || (empty($cur_workflow)) || ($cur_workflow=="")) {
+                  $cur_workflow="default";
+                }
+                if (!in_array($cur_workflow, $workflow)) {
+                   $workflow[]=$cur_workflow;
+                }
               }
-              if (!in_array($cur_workflow, $workflow)) {
-                 $workflow[]=$cur_workflow;
-              }
-            }
-            $all_values=$grp["values"];
-            if ($all_values) {  
-              foreach ($all_values as $v) {
-                $id=$v["optionID"];
-                if ($id) {
-                  $vdata = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_options_attributes WHERE optionID = ?", [$id]);
-                  if (count($vdata) > 0) {
-                    $params["sConfigurator"][$cnt]["values"][$id]["option_attributes"]=$vdata[0];
-                    $mediaid = $vdata[0]["cf_mediaid"];
-                    if (($mediaid) && (!empty($mediaid))) {
-                      $controller = $this;
-                      $media_data = $controller->getMediaInfoById($mediaid);
-                      $params["sConfigurator"][$cnt]["values"][$id]["media_data"] = $media_data;
+              if ($all_values) {  
+                foreach ($all_values as $v) {
+                  $id=$v["optionID"];
+                  if ($id) {
+                    $vdata = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_options_attributes WHERE optionID = ?", [$id]);
+                    if (count($vdata) > 0) {
+                      $params["sConfigurator"][$cnt]["values"][$id]["option_attributes"]=$vdata[0];
+                      $mediaid = $vdata[0]["cf_mediaid"];
+                      if (($mediaid) && (!empty($mediaid))) {
+                        $controller = $this;
+                        $media_data = $controller->getMediaInfoById($mediaid);
+                        $params["sConfigurator"][$cnt]["values"][$id]["media_data"] = $media_data;
+                      }
                     }
                   }
-                }
+                }  
               }  
-            }  
-         }
-         $cnt+=1;
+           }
+           $cnt+=1;
+        }
       }
+      if (!count($workflow)>0) {
+        $workflow[]="default";
+      }
+      $params["sWorkflow"]=$workflow;
     }
-    if (!count($workflow)>0) {
-      $workflow[]="default";
-    }
-    $params["sWorkflow"]=$workflow;
     $args->setReturn($params);
 }
 
@@ -339,8 +408,8 @@ public function afterBackendArticleLoadStoresAction(Enlight_Event_EventArgs $arg
     $templates = $data['templates'];
 
     $templates[] = array(
-      'id'  => 'card_formular.tpl',
-      'name'  => 'CardFormular',
+      'id'  => $this->cf_template,
+      'name'  => $this->cf_template_name, 
     );
 
     $data['templates'] = $templates;
@@ -452,7 +521,7 @@ public function CreateForm()
 
 public function DropArticleTemplates()
 {
-    $sql = 'UPDATE `s_articles` SET `template`="" WHERE `template`="card_formular.tpl"';
+    $sql = 'UPDATE `s_articles` SET `template`="" WHERE `template`="'.$this->cf_template.'"';
     Shopware()->Db()->query($sql);
 }
 
@@ -607,9 +676,9 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
     $view->assign('cf_show_markup', $this->Config()->get('cf_show_markup', 0));
     $view->assign('cf_markups', $markups);
 
-    if($sArticle['template'] == 'card_formular.tpl') {
+    if($sArticle['template'] == $this->cf_template) {
       $view->extendsTemplate('frontend/detail/hidden.tpl');
-      $view->extendsTemplate('frontend/detail/card_formular.tpl');
+      $view->extendsTemplate('frontend/detail/'.$this->cf_template);
       $view->extendsTemplate('frontend/detail/scripts.tpl');
     }
 }

@@ -1,5 +1,18 @@
 {extends file="parent:frontend/detail/index.tpl"}
 
+{block name='frontend_detail_index_configurator_settings'}
+   {* Variable for tracking active user variant selection *}
+   {$activeConfiguratorSelection = true}
+   {if $sArticle.sConfigurator}
+      {* If user has no selection in this group set it to false *}
+      {foreach $sArticle.sConfigurator as $configuratorGroup}
+         {if (!$configuratorGroup["pseudo"]) && (!$configuratorGroup.selected_value)}
+            {$activeConfiguratorSelection = false}
+         {/if}
+     {/foreach}
+   {/if}
+{/block}
+
 {block name='frontend_detail_index_image_container'}
 
       {$maxQuantity=$sArticle.maxpurchase}
@@ -170,12 +183,7 @@
                                {$myProductInfo=""}  
                                {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
                                  {$curOptionInfo=""}
-                                 {if $sConfigurator["group_attributes"]["cf_grouptype"]}
-                                   {$group_type = $sConfigurator["group_attributes"]["cf_grouptype"]}
-                                 {else}
-                                   {$group_type = "SelectBox"}
-                                 {/if}   
-                                 {if ($group_type=="SelectBox")||($group_type=="RadioBox")}
+                                 {if (!$sConfigurator["pseudo"])}
                                      {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
                                         {if $configValue.selected && $sConfigurator.user_selected}                                        
                                             {$curOptionInfoName=$configValue.optionname}
