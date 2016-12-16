@@ -183,7 +183,7 @@
                                {$myProductInfo=""}  
                                {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
                                  {$curOptionInfo=""}
-                                 {if (!$sConfigurator["pseudo"])}
+                                 {if (!$sConfigurator["pseudo"] && !$sConfigurator["hidden"]) }
                                      {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
                                         {if $configValue.selected && $sConfigurator.user_selected}                                        
                                             {$curOptionInfoName=$configValue.optionname}

@@ -228,11 +228,15 @@ public function unInstallConfiguratorAttributes()
 public function CreateEvents()
 {
   $this->subscribeEvent('Enlight_Bootstrap_InitResource_shopware_attribute.table_mapping', 'onTableMappingConstruct');
+  
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatchSecure_Backend_Base','onBackendBasePostDispatch');
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatchSecure_Backend_Article','onBackendArticlePostDispatch');
-  $this->subscribeEvent('sArticles::sGetArticleById::after', 'onArticleGetProduct');
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Detail','onFrontendDetailPostDispatch');
+
+  $this->subscribeEvent('sArticles::sGetArticleById::after', 'onArticleGetProduct');
+
   $this->subscribeEvent('Shopware_Controllers_Backend_Article::loadStoresAction::after', 'afterBackendArticleLoadStoresAction');
+  $this->subscribeEvent('Shopware_Controllers_Backend_Article::createConfiguratorVariantsAction::before', 'beforeCreateConfiguratorVariantsAction');
 
   $this->subscribeEvent('Legacy_Struct_Converter_Convert_Configurator_Set', 'onFilterConvertConfiguratorStruct');
   $this->subscribeEvent('Legacy_Struct_Converter_Convert_Configurator_Price', 'onFilterConvertConfiguratorPrice');
@@ -290,6 +294,7 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
         foreach ($all_groups as $grp) {                      
            if ($grp["groupID"]) {
               $all_values=$grp["values"];
+              //if pseudo group
               if ($this->isPseudoGroup($grp["groupID"]))  {
                  $params["sConfigurator"][$cnt]["pseudo"] = true;
                  if ($all_values) {
@@ -301,8 +306,22 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                    }
                  }
               } 
+              //if group with single option
+              if (
+                 ($params["sConfiguratorSettings"]["type"] == 0) 
+                 && (!$params["sConfigurator"][$cnt]["pseudo"])
+                 && ($all_values) 
+                 && (count($all_values) < 2)
+              )
+              {
+                $params["sConfigurator"][$cnt]["hidden"] = true;
+              }
+
               $data = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_groups_attributes WHERE groupID = ?", [$grp["groupID"]]);
               if (count($data) > 0) {
+                if ($params["sConfigurator"][$cnt]["hidden"]) {
+                  $data[0]["cf_workflowlabel"]="";
+                }
                 $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];              
                 $cur_workflow=$data[0]["cf_workflowlabel"];
                 if ((!isset($cur_workflow)) || (empty($cur_workflow)) || ($cur_workflow=="")) {
@@ -383,6 +402,7 @@ public function onBackendArticlePostDispatch(Enlight_Event_EventArgs $args)
         $view->extendsTemplate('backend/cardformular_extend_article/controller/variant.js');
         $view->extendsTemplate('backend/cardformular_extend_article/view/variant/configurator/group_edit.js');  
         $view->extendsTemplate('backend/cardformular_extend_article/view/variant/configurator/option_edit.js');
+        $view->extendsTemplate('backend/cardformular_extend_article/view/variant/list.js');
         $view->extendsTemplate('backend/cardformular_extend_article/model/configurator_option.js');
     }
 }
@@ -398,6 +418,19 @@ public function onBackendBasePostDispatch(Enlight_Event_EventArgs $args)
     }
 }
 
+public function beforeCreateConfiguratorVariantsAction(Enlight_Event_EventArgs $args)
+{
+    $controller = $args->getSubject();
+    $groups = $controller->Request()->getParam('groups');
+    $cnt = 0;
+    foreach ($groups as $group) {
+      if (($group["id"]) && ($this->isPseudoGroup($group["id"]))) {
+        $groups[$cnt]['active'] = 0;
+      } 
+      $cnt += 1; 
+    }  
+    $controller->Request()->setParam('groups', $groups);
+}  
 
 public function afterBackendArticleLoadStoresAction(Enlight_Event_EventArgs $args)
 {
@@ -637,8 +670,8 @@ public function ftpUpload($fileData)
 //print_r('<pre>config: ');print_r($config);print_r('</pre>');
 //print_r('<pre>fileData: ');print_r($fileData);print_r('</pre>');
 
-  $file = 'somefile.txt';
-  $remote_file = 'readme.txt';
+  $file = $fileData['tmp_name'];
+  $remote_file = $fileData['name'];
 
   // set up basic connection
   $conn_id = ftp_connect($config['cf_remote_ftp_address']);
@@ -646,6 +679,7 @@ public function ftpUpload($fileData)
   // login with username and password
   $login_result = ftp_login($conn_id, $config['cf_remote_ftp_username'], $config['cf_remote_ftp_password']);
   $path = $config['cf_remote_ftp_path'] . DS . rand(111111, 999999) . DS;
+  $returnPath = $config['cf_remote_ftp_address'] . DS . $path . $remote_file;
 
   $createDir = $this->ftpMkDir($conn_id, $path);
 //print_r('<pre>createDir: ');print_r($createDir);print_r('</pre>');
@@ -653,7 +687,7 @@ public function ftpUpload($fileData)
   // upload a file
   if (ftp_put($conn_id, $path . $remote_file, $file, FTP_ASCII)) {
     ftp_close($conn_id);
-    return 1;
+    return $returnPath;
   } else {
     ftp_close($conn_id);
     return 0;
@@ -708,3 +742,12 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
     }
 
 }
+
+/*
+error_log('variable');
+ob_start();
+print_r($variable);
+$contents = ob_get_contents();
+ob_end_clean();
+error_log($contents);
+*/

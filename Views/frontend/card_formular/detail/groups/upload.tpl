@@ -1,6 +1,17 @@
 <div class="field--select">
 <span class="arrow"></span>
 
+{$groupnameprefix="custom"}
+{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+  <div style="display:none">
+			  	<input type="hidden"
+						id="group[{$option.groupID}][{$option.optionID}]"
+						name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
+						value=""
+					/>	
+ </div>
+{/foreach}
+
 <table>
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
 {assign var=optionID value=$option.optionID}

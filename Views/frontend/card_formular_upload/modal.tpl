@@ -1,4 +1,14 @@
-<form class="form upload-modal-form" action="{url controller=CardFormularUpload action=upload sOption=$sOption}" id="upload-form-{$sOption}" method="post" name="upload-form-{$sOption}" enctype="multipart/form-data" novalidate="">
+<div id="message-upload-form-{$sOption}" class="is--hidden error-message" style="background: {$filesUploadErrorBackgroundColor};"></div>
+<form
+	class="form upload-modal-form"
+	action="{url controller=CardFormularUpload action=upload sOption=$sOption}"
+	id="upload-form-{$sOption}"
+	method="post"
+	name="upload-form-{$sOption}"
+	enctype="multipart/form-data"
+	onsubmit="return validate{$sOption}({$maxUploadSize})"
+	data-mode="ajax"
+	>
 	<div class="class_uploadtable form-top-aligned form-top-aligned container-normal" style="">
 
 		{if $filesUploadSize neq ''}
@@ -55,3 +65,62 @@
 </div> 
 <div class="clear"></div>
 </form>
+
+<script type="text/javascript">
+function validate{$sOption}(max_img_size) {
+	var input_size = $('#fileupload-{$sOption}')[0].files[0].size;
+	// check for browser support (may need to be modified)
+	if(input_size > max_img_size) {
+		var message = '{s name="FilesMaxUploadMessage" namespace="CardFormular"}{/s}' + ': ' + (max_img_size/1024/1024) + 'MB';
+		$('#message-upload-form-{$sOption}').html(message).removeClass('is--hidden');
+		return false;
+	}
+
+	var $form = $('#upload-form-{$sOption}'),
+		formUrl = $form.attr('action'),
+		file = $('#fileupload-{$sOption}')[0].files[0];
+		data = new FormData();
+console.log(file);
+
+	data.append('file-{$sOption}', file, file.name);
+console.log(data);
+console.log(data.get('file-{$sOption}'));
+
+/*	var serData = {};
+	$.each($form.serializeArray(), function(i, data) {
+		serData[data.name] = data.value;
+	});*/
+
+	var xhr = new XMLHttpRequest();     
+	xhr.open('POST', formUrl, true);  
+	xhr.send(data);
+	xhr.onload = function () {                  
+		if (xhr.status === 200) {
+console.log('Ok');
+console.log($.parseJSON(xhr.response));
+		} else {
+console.log('Fail');
+console.log($.parseJSON(xhr.response));
+		}
+	}
+  
+/*	$.ajax({
+		url: formUrl,
+		//dataType: 'json',
+		data: serData,
+		async: true,
+		method: 'POST',
+ 
+		success: function(data) {
+			console.log(data);
+			$('#message-upload-form-{$sOption}').html(data).removeClass('is--hidden');
+		},
+		error: function(e,a,b) {
+			console.log('error');
+			console.log(e,a,b);
+		}
+	});*/
+
+	return false;
+}
+</script>

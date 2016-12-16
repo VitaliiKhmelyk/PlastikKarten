@@ -122,6 +122,7 @@
 		  {$cnt=$cnt+1}	
 		{/foreach}
 		
+		{if $sConfigurator["hidden"]}<div style="display:none;">{/if} 
 		{if $is_subgroup}
 			<div class="child_subgroup_{$group_parentid}_container" style="display:none;">
 		{else}
@@ -173,7 +174,8 @@
 					{include file="frontend/card_formular/detail/groups/infolink.tpl"}					
 				{/block}	
 			{/if}
-		</div>	
+		</div>
+		{if $sConfigurator["hidden"]}</div>{/if} 	
 	{/foreach}	
 
 	{block name='frontend_detail_configurator_noscript_action'}
@@ -184,7 +186,15 @@
 
 	{block name='frontend_detail_configurator_subgroup_script_action'}
   	<script>
-	  var aSubGroupsArray = new Array({$cnt=0}{foreach from=$subgroups item=sI}{if $cnt>0},{/if}"{$sI}"{/foreach});
+	   var aSubGroupsArray = [{$cnt=0}{foreach from=$subgroups item=sI}{if $cnt>0},{/if}"{$sI}"{/foreach}];
+       var aGroupsDataArray = [
+       	    {$cnt=0}
+         	{foreach from=$sArticle.sConfigurator item=sConfigurator}
+         	  {if $cnt>0},{/if}[{$sConfigurator.groupID},'',[{$cnt2=0}{foreach from=$sConfigurator.values item=option}{if $cnt2>0},{/if}[{$option.optionID},'']{$cnt2=$cnt2+1}{/foreach}]]         	          	  
+         	  {$cnt=$cnt+1}		
+         	{/foreach}	       	    
+       	];
+
 	</script>
 	{/block}
 

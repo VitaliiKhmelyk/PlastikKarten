@@ -58,6 +58,7 @@
 				name="{$groupnameprefix}group[{$option.groupID}]"
 				value="{$option.optionID}"
 				title="{$option.optionname}"
+				{if !$option.selectable}disabled="disabled"{/if}
 				data-ajax-select-variants="true"
 				{if $option.selected && $option.selectable}checked="checked"{/if} />
 			{/block}	
@@ -65,6 +66,7 @@
 			<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
 				{block name='frontend_detail_configurator_variant_group_option_label_text'}
 					{$option.optionname}
+					{if !$option.selectable}{s name="DetailConfigValueNotAvailable" namespace="frontend/detail/config_step"}{/s}{/if}
 				{/block}
 			</label>
 			{/block}	
@@ -114,6 +116,7 @@
 			value="{$option.optionID}"
 			title="{$option.optionname}"
 			data-ajax-select-variants="true"
+			{if !$option.selectable}disabled="disabled"{/if}
 			{if $option.selected && $option.selectable}checked="checked"{/if} />
 	{/block}
 	</div>
@@ -144,6 +147,7 @@
 		<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
 	  		{block name='frontend_detail_configurator_variant_group_option_label_text'}
 				{$option.optionname}
+				{if !$option.selectable}{s name="DetailConfigValueNotAvailable" namespace="frontend/detail/config_step"}{/s}{/if}
 			{/block}
 		</label>
 		{if $cf_show_markup}
