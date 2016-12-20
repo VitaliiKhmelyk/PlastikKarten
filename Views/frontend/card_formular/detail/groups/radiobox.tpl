@@ -54,16 +54,16 @@
 		  {block name='frontend_detail_configurator_variant_group_option_input'}
 		  	<input type="radio"
 				class="option--input"
-				id="group[{$option.groupID}][{$option.optionID}]"
+				id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 				name="{$groupnameprefix}group[{$option.groupID}]"
 				value="{$option.optionID}"
 				title="{$option.optionname}"
 				{if !$option.selectable}disabled="disabled"{/if}
-				data-ajax-select-variants="true"
+				{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
 				{if $option.selected && $option.selectable}checked="checked"{/if} />
 			{/block}	
 			{block name='frontend_detail_configurator_variant_group_option_label'}
-			<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
+			<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
 				{block name='frontend_detail_configurator_variant_group_option_label_text'}
 					{$option.optionname}
 					{if !$option.selectable}{s name="DetailConfigValueNotAvailable" namespace="frontend/detail/config_step"}{/s}{/if}
@@ -111,11 +111,11 @@
 	{block name='frontend_detail_configurator_variant_group_option_input'}
 		<input type="radio"
 			class="option--input"
-			id="group[{$option.groupID}][{$option.optionID}]"
+			id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			name="{$groupnameprefix}group[{$option.groupID}]"
 			value="{$option.optionID}"
 			title="{$option.optionname}"
-			data-ajax-select-variants="true"
+			{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
 			{if !$option.selectable}disabled="disabled"{/if}
 			{if $option.selected && $option.selectable}checked="checked"{/if} />
 	{/block}
@@ -144,7 +144,7 @@
 <td class="td-color-cf">
 	<div class="variant--option">
 	{block name='frontend_detail_configurator_variant_group_option_label'}
-		<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
+		<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
 	  		{block name='frontend_detail_configurator_variant_group_option_label_text'}
 				{$option.optionname}
 				{if !$option.selectable}{s name="DetailConfigValueNotAvailable" namespace="frontend/detail/config_step"}{/s}{/if}

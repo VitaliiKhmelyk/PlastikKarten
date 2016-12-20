@@ -44,7 +44,7 @@
 
              {* proposals content *}
              {block name="frontend_detail_tabs_proposals_content"}
-               <div class="tab--content">
+               <div class="tab--content cf_ajax_container_market_price">
                    {block name="frontend_detail_tabs_proposals_content_inner"}
                       {include file="frontend/card_formular/detail/proposals.tpl"}
                    {/block}

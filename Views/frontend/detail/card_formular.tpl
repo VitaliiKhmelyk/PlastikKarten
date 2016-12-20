@@ -11,22 +11,52 @@
          {/if}
      {/foreach}
    {/if}
+
+   {$maxQuantity=$sArticle.maxpurchase}
+   {if $sArticle.laststock && $sArticle.instock < $sArticle.maxpurchase}
+        {$maxQuantity=$sArticle.instock}
+   {/if}
+   {$curQuantity=$sArticle.minpurchase}
+      
+   {if !($sArticle.quantity) }
+        {$sArticle.quantity = $smarty.get.qty - 0}
+   {/if}
+   {if $sArticle.quantity && ($sArticle.quantity >= $sArticle.minpurchase) && ($sArticle.quantity <= $maxQuantity) }
+        {$curQuantity=$sArticle.quantity}
+   {/if} 
+
+   {$myProductInfo=""}  
+   {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
+     {$curOptionInfo=""}
+     {if (!$sConfigurator["pseudo"] && !$sConfigurator["hidden"]) }
+        {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
+           {if $configValue.selected && $sConfigurator.user_selected}                                        
+              {$curOptionInfoName=$configValue.optionname}
+                  {$curOptionInfo=$curOptionInfo|cat:"<span>"|cat:$curOptionInfoName|cat:"; </span>"}  
+           {/if}                                        
+        {/foreach}  
+     {/if}     
+     {if !empty($curOptionInfo)}
+        {$curOptionInfoName=$sConfigurator.groupname}
+            {$myProductInfo=$myProductInfo|cat:"<p><span class='configurator--label'>"|cat:$curOptionInfoName|cat:": </span>"|cat:$curOptionInfo|cat:"</p>"}            
+        {/if}
+   {/foreach}   
+
+   {if $sArticle.sBlockPrices}
+      {$lowestPrice=false}
+      {$highestPrice=false}
+      {foreach $sArticle.sBlockPrices as $blockPrice}
+         {if $lowestPrice === false || $blockPrice.price < $lowestPrice}
+           {$lowestPrice=$blockPrice.price}
+         {/if}
+         {if $highestPrice === false || $blockPrice.price > $highestPrice}
+           {$highestPrice=$blockPrice.price}
+         {/if}
+      {/foreach}
+   {/if}                                 
 {/block}
 
-{block name='frontend_detail_index_image_container'}
-
-      {$maxQuantity=$sArticle.maxpurchase}
-      {if $sArticle.laststock && $sArticle.instock < $sArticle.maxpurchase}
-        {$maxQuantity=$sArticle.instock}
-      {/if}
-      {$curQuantity=$sArticle.minpurchase}
-      
-      {if !($sArticle.quantity) }
-        {$sArticle.quantity = $smarty.get.qty - 0}
-      {/if}
-      {if $sArticle.quantity && ($sArticle.quantity >= $sArticle.minpurchase) && ($sArticle.quantity <= $maxQuantity) }
-        {$curQuantity=$sArticle.quantity}
-      {/if}
+{block name='frontend_detail_index_image_container'}     
 
    <table class="table-group-cf">
    <tr><td>
@@ -85,11 +115,13 @@
         </table>    
         {/if}
    {/block}   
+
  {/block}
 
  {block name='frontend_detail_index_buy_container'}
             <div class="product--buybox block product--data-container-cf">
-
+                 
+                 <div class="cf_ajax_container_common_info">  
                     {block name="frontend_detail_rich_snippets_brand"}
                         <meta itemprop="brand" content="{$sArticle.supplierName|escape}"/>
                     {/block}
@@ -137,6 +169,17 @@
                         {/if}
                     {/block}
 
+                    <input type="hidden" class="cf_ajax_container_rand" value="{$rand}">
+                    <input type="hidden" class="cf_ajax_container_flag" value="">
+                    {block name='frontend_detail_data_price_default_loading'}                           
+                      <div class="cf_ajax_container_loading" style="display:none;">
+                        <span class="price--content content--default">
+                           {s name="progress/progress_bar_loading" namespace="backend/index/view/theme_cache"}Loading data...{/s}   
+                        </span>
+                      </div>  
+                    {/block}
+
+                 </div>
                     
 
                     {* Product data *}
@@ -146,7 +189,7 @@
                             <div class="product--image-container-right-cf">
                             {* Configurator drop down menu's *}
                             {block name="frontend_detail_index_configurator"}
-                                <div class="product--configurator">
+                                <div class="product--configurator cf_ajax_container_groups">
                                     {if $sArticle.sConfigurator}
                                         {include file="frontend/card_formular/detail/config_options.tpl"}
                                     {/if}
@@ -156,18 +199,8 @@
 
                             <div class="product--image-container-cf">
                             {block name='frontend_detail_index_data'}
+                              <div class="cf_ajax_container_price">
                                 {if $sArticle.sBlockPrices}
-                                    {$lowestPrice=false}
-                                    {$highestPrice=false}
-                                    {foreach $sArticle.sBlockPrices as $blockPrice}
-                                        {if $lowestPrice === false || $blockPrice.price < $lowestPrice}
-                                            {$lowestPrice=$blockPrice.price}
-                                        {/if}
-                                        {if $highestPrice === false || $blockPrice.price > $highestPrice}
-                                            {$highestPrice=$blockPrice.price}
-                                        {/if}
-                                    {/foreach}
-
                                     <meta itemprop="lowPrice" content="{$lowestPrice}" />
                                     <meta itemprop="highPrice" content="{$highestPrice}" />
                                     <meta itemprop="offerCount" content="{$sArticle.sBlockPrices|count}" />
@@ -175,27 +208,13 @@
                                     <meta itemprop="priceCurrency" content="{$Shop->getCurrency()->getCurrency()}"/>
                                 {/if}
                                 {include file="frontend/card_formular/detail/data.tpl" sArticle=$sArticle sView=1}
+                              </div>  
                             {/block}
 
                             {block name='frontend_detail_index_after_data'}{/block}
                             
-                            {block name="frontend_detail_index_your_product"}                               
-                               {$myProductInfo=""}  
-                               {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
-                                 {$curOptionInfo=""}
-                                 {if (!$sConfigurator["pseudo"] && !$sConfigurator["hidden"]) }
-                                     {foreach from=$sConfigurator.values item=configValue name=option key=optionID}
-                                        {if $configValue.selected && $sConfigurator.user_selected}                                        
-                                            {$curOptionInfoName=$configValue.optionname}
-                                            {$curOptionInfo=$curOptionInfo|cat:"<span>"|cat:$curOptionInfoName|cat:"; </span>"}  
-                                        {/if}                                        
-                                     {/foreach}  
-                                 {/if}     
-                                 {if !empty($curOptionInfo)}
-                                    {$curOptionInfoName=$sConfigurator.groupname}
-                                    {$myProductInfo=$myProductInfo|cat:"<p><span class='configurator--label'>"|cat:$curOptionInfoName|cat:": </span>"|cat:$curOptionInfo|cat:"</p>"}            
-                                {/if}
-                               {/foreach}   
+                            {block name="frontend_detail_index_your_product"}
+                              <div class="cf_ajax_container_product_txt">
                                {if !empty($myProductInfo)}
                                  <div class="table-group-cf">
                                     <h4>{s name="YourProduct" namespace='CardFormular'}Your Product{/s}<h4>
@@ -204,11 +223,14 @@
                                     {$myProductInfo}
                                  </div>   
                                {/if}
+                              </div>   
                             {/block}
 
                             {* Include buy button and quantity box *}
                             {block name="frontend_detail_index_buybox"}
+                               <div class="cf_ajax_container_buy">
                                 {include file="frontend/card_formular/detail/buy.tpl"}
+                               </div> 
                             {/block}                            
 
                             </div>
@@ -224,7 +246,8 @@
 
                     {* Product - Base information *}
                     {block name='frontend_detail_index_buy_container_base_info'}
-                        <ul class="product--base-info list--unstyled">
+                        <div class="cf_ajax_container_order_info">
+                        <ul class="product--base-info list--unstyled" >
 
                             {* Product SKU *}
                             {block name='frontend_detail_data_ordernumber'}
@@ -281,6 +304,7 @@
                                 {/block}
                             {/block}
                         </ul>
+                        </div>
                     {/block}
 
                 </div>  

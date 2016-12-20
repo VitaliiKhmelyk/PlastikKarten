@@ -26,6 +26,7 @@ private $clearCache = array(
         'template', 'backend', 'proxy'
     );
 
+private $cf_template_orig = "card_formular"; 
 private $cf_template = "card_formular.tpl";  
 private $cf_template_name = 'PlastikKarten';
 
@@ -101,6 +102,8 @@ private $dbeConfOptionFilelds = array(
               'data'=>''
               )
     );
+
+private $cf_template_mode = '';
 
 public function install()
 {
@@ -233,6 +236,9 @@ public function CreateEvents()
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatchSecure_Backend_Article','onBackendArticlePostDispatch');
   $this->subscribeEvent('Enlight_Controller_Action_PostDispatch_Frontend_Detail','onFrontendDetailPostDispatch');
 
+  $this->subscribeEvent('Shopware_Controllers_Frontend_Detail::indexAction::before', 'beforeFrontendDetailIndexAction');
+  $this->subscribeEvent('Shopware_Controllers_Frontend_Detail::indexAction::after', 'afterFrontendDetailIndexAction');
+
   $this->subscribeEvent('sArticles::sGetArticleById::after', 'onArticleGetProduct');
 
   $this->subscribeEvent('Shopware_Controllers_Backend_Article::loadStoresAction::after', 'afterBackendArticleLoadStoresAction');
@@ -255,7 +261,7 @@ public function isPseudoGroup($id) {
   return $res;
 }  
 
-public function checkConfiguratorSetSelectionSpecified(StoreFrontBundle\Struct\Configurator\Set $set) {
+public function checkConfiguratorSetSelectionSpecified($set) {
   //$res = $set->isSelectionSpecified();  
   $res = true;  
   foreach ($set->getGroups() as $group) {
@@ -283,6 +289,18 @@ public function onFilterConvertConfiguratorPrice(Enlight_Event_EventArgs $args) 
   }     
   return $result;
 }
+
+public function beforeFrontendDetailIndexAction(Enlight_Event_EventArgs $args) {
+  $controller = $args->getSubject();
+  $request = $controller->Request();
+  if (!empty($request->templatemode)) {
+    $this->cf_template_mode = $request->templatemode;
+  }
+}  
+
+public function afterFrontendDetailIndexAction(Enlight_Event_EventArgs $args) {
+  $this->cf_template_mode = '';
+} 
 
 public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
     $params = $args->getReturn();
@@ -355,7 +373,13 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
       if (!count($workflow)>0) {
         $workflow[]="default";
       }
-      $params["sWorkflow"]=$workflow;
+      $params["sWorkflow"] = $workflow;
+      $params["isCF"] = true;
+      if (!empty($this->cf_template_mode)) {
+         $params["template"] = ($this->cf_template_orig).($this->cf_template_mode).".tpl";
+      } //else {
+      //   $params["template"] = ($this->cf_template_orig)."_ajax.tpl";
+      //}        
     }
     $args->setReturn($params);
 }

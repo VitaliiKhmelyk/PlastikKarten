@@ -5,9 +5,10 @@
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
   <div style="display:none">
 			  	<input type="hidden"
-						id="group[{$option.groupID}][{$option.optionID}]"
+						id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 						name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 						value=""
+						onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
 					/>	
  </div>
 {/foreach}

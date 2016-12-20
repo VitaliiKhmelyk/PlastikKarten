@@ -24,7 +24,7 @@
 				onchange="setQtyTextInputVal(this, true, {$sArticle.minpurchase}, {$maxQuantity})"
 			>
 			{if $sArticle.packunit} {$sArticle.packunit}{/if} &nbsp; &nbsp; 
-			<a href="javascript:void(0)" title="{s name='RecalculatePrice' namespace='CardFormular'}{/s}" data-ajax-variants="true">
+			<a href="javascript:void(0)" class="call_ajax_repaint" title="{s name='RecalculatePrice' namespace='CardFormular'}{/s}" data-ajax-variants="true">
 				<i class="icon--cycle"></i>
 			</a>			
 		</div>	
@@ -194,12 +194,10 @@
          	  {$cnt=$cnt+1}		
          	{/foreach}	       	    
        	];
-
+       	var isCardFormular = {if $sArticle.isCF}true{else}false{/if};
 	</script>
 	{/block}
 
 </form>
 
-{block name='frontend_detail_configurator_step_reset'}
-	{include file="frontend/detail/config_reset.tpl"}
-{/block}
+

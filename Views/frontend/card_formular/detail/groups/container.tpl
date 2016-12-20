@@ -6,11 +6,12 @@
 	{block name='frontend_detail_configurator_variant_group_option_input'}
 		<input type="text"
 			class="option--input"
-			id="customgroup[{$option.groupID}][{$option.optionID}]"
+			id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			value=""
 			title="{$option.optionname}"
 			style="display:none;"
+			onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
 			/>
 	{/block}	
 {/foreach}

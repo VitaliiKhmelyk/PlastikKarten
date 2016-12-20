@@ -40,7 +40,7 @@
 <td class="td-color-cf">
 	<div class="variant--option">
 	{block name='frontend_detail_configurator_variant_group_option_label'}
-		<label for="group[{$option.groupID}][{$option.optionID}]" class="option--label">
+		<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
 	  		{block name='frontend_detail_configurator_variant_group_option_label_text'}
 				{$option.optionname}:
 			{/block}
@@ -54,10 +54,13 @@
 	{block name='frontend_detail_configurator_variant_group_option_input'}
 		<input type="text"
 			class="option--input"
-			id="group[{$option.groupID}][{$option.optionID}]"
+			id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			value=""
 			title="{$option.optionname}"
+			onkeyup="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
+			oninput="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
+			onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
 			/>
 	{/block}						
 	</div>
