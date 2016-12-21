@@ -10,23 +10,13 @@
 		<table>
         <tr><td>
 		<div class="field--select">
-			<span class="arrow"></span>			
-			<input type="text" min="{$sArticle.minpurchase}" max="{$maxQuantity}" value="{$curQuantity}"  
-				id="qty" name="qty" class="buybox--quantity"  
-				onkeydown="return ( event.ctrlKey || event.altKey 
-				                    || (47<event.keyCode && event.keyCode<58 && event.shiftKey==false) 
-				                    || (95<event.keyCode && event.keyCode<106)
-				                    || (event.keyCode==8) || (event.keyCode==9) 
-				                    || (event.keyCode>34 && event.keyCode<40) 
-				                    || (event.keyCode==46) )" 
-				onkeyup="setQtyTextInputVal(this, false, {$sArticle.minpurchase}, {$maxQuantity})" 
-				oninput="setQtyTextInputVal(this, false, {$sArticle.minpurchase}, {$maxQuantity})"
-				onchange="setQtyTextInputVal(this, true, {$sArticle.minpurchase}, {$maxQuantity})"
-			>
-			{if $sArticle.packunit} {$sArticle.packunit}{/if} &nbsp; &nbsp; 
-			<a href="javascript:void(0)" class="call_ajax_repaint" title="{s name='RecalculatePrice' namespace='CardFormular'}{/s}" data-ajax-variants="true">
-				<i class="icon--cycle"></i>
-			</a>			
+			<span class="arrow"></span>
+			<span class='cf_ajax_container_count'>			
+				<input type="text" class='cf_ajax_container_count_input' min="{$sArticle.minpurchase}" max="{$maxQuantity}" value="{$curQuantity}"  
+					id="qty" name="qty" class="buybox--quantity">
+				{if $sArticle.packunit} {$sArticle.packunit}{/if}</span> 
+			&nbsp; &nbsp; 			
+			<a href="javascript:void(0)" class="call_ajax_repaint" title="{s name='RecalculatePrice' namespace='CardFormular'}{/s}" data-ajax-variants="true"><i class="icon--cycle"></i></a>			
 		</div>	
 		</td></tr>
 		</table>
@@ -88,6 +78,7 @@
 		{/if}
 	{/foreach}	
 
+	{$group_enabled = true}
 	{foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
 		{$group_type = ""}
 		{$group_info = ""}
@@ -141,7 +132,18 @@
 				{/if}
 			{/block}
             
-			{$pregroupID=$groupID-1}
+		
+			{if !$sConfigurator["pseudo"] && (($group_type=="RadioBox")||($group_type=="SelectBox")||($group_type==""))}
+				{$is_disabled=!$group_enabled}
+				{$group_enabled = false}
+				{foreach from=$sConfigurator.values item=option}
+				  {if $option.selectable && !$is_disabled && $option.selected}
+				      {$group_enabled = true}
+				  {/if}
+				{/foreach}
+			{else}
+				 {$is_disabled=false}
+			{/if}
 
 			{if ($group_type=="RadioBox")}
   			   {block name='frontend_detail_group_radiobox'}
@@ -151,6 +153,10 @@
 			   {block name='frontend_detail_group_textfields'}
 				{include file="frontend/card_formular/detail/groups/textbox.tpl"}	
 			   {/block}
+			{else} {if ($group_type=="TextArea")}			  
+			   {block name='frontend_detail_group_textarea'}
+				{include file="frontend/card_formular/detail/groups/textbox.tpl"}	
+			   {/block}   
 			{else} {if ($group_type=="FrontBackSide")}
 			   {block name='frontend_detail_group_sidebox'}
 				{include file="frontend/card_formular/detail/groups/sidebox.tpl"}	
@@ -167,7 +173,7 @@
 			  {block name='frontend_detail_group_selection'}
 				{include file="frontend/card_formular/detail/groups/selectbox.tpl"}	
 			  {/block}
-			{/if}{/if}{/if}{/if}{/if}
+			{/if}{/if}{/if}{/if}{/if}{/if}
 
 			{if !($is_subgroup)}
 				{block name='frontend_detail_group_radio_info'}					
@@ -190,7 +196,7 @@
        var aGroupsDataArray = [
        	    {$cnt=0}
          	{foreach from=$sArticle.sConfigurator item=sConfigurator}
-         	  {if $cnt>0},{/if}[{$sConfigurator.groupID},'',[{$cnt2=0}{foreach from=$sConfigurator.values item=option}{if $cnt2>0},{/if}[{$option.optionID},'']{$cnt2=$cnt2+1}{/foreach}]]         	          	  
+         	  {if $cnt>0},{/if}[{$sConfigurator.groupID},'',[{$cnt2=0}{foreach from=$sConfigurator.values item=option}{if $cnt2>0},{/if}[{$option.optionID},'']{$cnt2=$cnt2+1}{/foreach}],{if $sConfigurator['pseudo']}true{else}false{/if}]         	          	  
          	  {$cnt=$cnt+1}		
          	{/foreach}	       	    
        	];
@@ -199,5 +205,4 @@
 	{/block}
 
 </form>
-
 

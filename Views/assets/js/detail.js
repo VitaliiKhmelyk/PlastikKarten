@@ -1,16 +1,39 @@
-function setQtyTextInputVal(obj, is_forced, min_val, max_val) {
-    var new_val = "";
-    if ((obj.value == "") && !(is_forced))  {
-    	new_val = min_val;
-    } else {
-    	new_val = Math.min(Math.max(obj.value - 0, min_val), max_val);
-    	obj.value = new_val;
-    }
-    var elem = document.getElementById('sQuantity');
-    if (elem) {
-      elem.value = new_val;
+function setQtyTextInputVal(is_forced) {    
+    var obj = document.getElementById("qty");
+    if (obj) {
+      var min_val = parseInt(obj.min);    
+      var max_val = parseInt(obj.max);
+      var new_val = "";
+      if ((obj.value == "") && !(is_forced))  {
+      	new_val = min_val;
+      } else {
+      	new_val = Math.min(Math.max(obj.value - 0, min_val), max_val);
+      	obj.value = new_val;
+      }
+      var elem = document.getElementById('sQuantity');
+      if (elem) {
+        elem.value = new_val;
+      }
     }
 }
+
+function setCountInputEvents() {
+  var srcObj = document.getElementById("qty");
+  if (srcObj) {    
+    srcObj.onkeyup = function(){setQtyTextInputVal(false);};
+    srcObj.oninput = function(){setQtyTextInputVal(false);};
+    srcObj.onchange = function(){setQtyTextInputVal(true);};
+    srcObj.onkeydown = function(event){
+     var x = event.which || event.keyCode;
+     return  ( event.ctrlKey || event.altKey 
+                              || (47<x && x<58 && event.shiftKey==false) 
+                              || (95<x && x<106)
+                              || (x==8) || (x==9) 
+                              || (x>34 && x<40) 
+                              || (x==46) )
+    };
+  }
+} 
 
 function setWorkflowStage(stage_idx) {
  var prefix = "workflow_stage_";
@@ -158,12 +181,38 @@ function setLoadingMode() {
   $('.entry--content').html("");
 }
 
+function replaceActiveContent(response) {
+var container,
+    divContent= [ 
+               'cf_ajax_container_common_info',
+               'cf_ajax_container_price',
+               'cf_ajax_container_product_txt',
+               'cf_ajax_container_buy',
+               'cf_ajax_container_market_price',
+               'cf_ajax_container_order_info',
+               'cf_ajax_container_count'
+            ];  
+  $.each( divContent, function( i, val ) {
+     container = response.find('.'+val);
+     $('.'+val).html(container.html());
+  });
+  container = response.find('.buybox--inner');
+  $('.buybox--inner').attr('itemtype',container.attr('itemtype'));
+  container = response.find('.cf_ajax_container_link1');
+  $('.content--link.link--contact').attr('href',container.html()); 
+  for (var i = 0; i < aGroupsDataArray.length; i++) {
+    container = response.find('.cf_ajax_container_group_'+aGroupsDataArray[i][0]);
+    $('.cf_ajax_container_group_'+aGroupsDataArray[i][0]).html(container.html());
+  }
+}  
+
 if (isCardFormular) {
 
 //console.log('card formular detected!');  
 
 executeSetSubgroupParentObj();
 setWorkflowStage();
+setCountInputEvents();
 
 
 $.overridePlugin('swAjaxVariant', {
@@ -179,7 +228,6 @@ $.overridePlugin('swAjaxVariant', {
                //console.log('waiting for completion!');
                return;
             }
-
             //console.log('ajax started');
 
             var flag_md5 = $(flag_md5_obj).val();
@@ -201,14 +249,7 @@ $.overridePlugin('swAjaxVariant', {
                 values.c = stateObj.params.c;
             }
 
-            var divContent= [ 
-               'cf_ajax_container_common_info',
-               'cf_ajax_container_price',
-               'cf_ajax_container_product_txt',
-               'cf_ajax_container_buy',
-               'cf_ajax_container_market_price',
-               'cf_ajax_container_order_info'
-            ];
+            
 
             $.ajax({
                 url: stateObj.location,
@@ -226,11 +267,8 @@ $.overridePlugin('swAjaxVariant', {
                         ordernumber;
 
                     // Replace the content
-                    $.each( divContent, function( i, val ) {
-                        $container = $response.find('.'+val);
-                        $('.'+val).html($container.html());
-                    });
-                   
+                    replaceActiveContent($response);
+                                       
                     // Get the ordernumber for the url
                     ordernumber = $.trim(me.$el.find(me.opts.orderNumberSelector).text());
 
@@ -264,6 +302,12 @@ $.overridePlugin('swAjaxVariant', {
 
 $.subscribe('plugin/swAjaxVariant/onBeforeRequestData', function(me, values, location) {    
     //console.log('onBeforeRequestData');  
+    saveCustomParamsStatus();
+});
+
+$.subscribe('plugin/swAjaxVariant/onRequestData', function(me, response, values, location) {    
+    //console.log('onRequestData');  
+    setCountInputEvents();
     saveCustomParamsStatus();
 });
 

@@ -5,6 +5,7 @@
 {$is_media_presents=false}
 {$is_markup=false}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+{if $option.selectable|| $is_subgroup }
   {if isset($option.media_data.src.original)}
     {if ($option.media_data.src.original!="")}
       {$is_horizontal=true}
@@ -16,6 +17,7 @@
 		{/if}
 	{/if}	
   {/if}
+ {/if} 
 {/foreach}
 
 {$groupnameprefix=""}
@@ -23,12 +25,14 @@
   {$groupnameprefix="custom"}
 {/if}
 
+<div class='cf_ajax_container_group[{$sConfigurator.groupID}]'>
 <table>
 
 {if $is_horizontal}
 
 <tr>
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+	{if $option.selectable}
 		<td class="td-color-cf">
 		  	<div class="variant--option is--image">
 		  		{block name='frontend_detail_configurator_variant_group_option_label_image'}
@@ -45,10 +49,12 @@
 				{/block}
 		  	</div>	
 		</td>
+	{/if}	
 	{/foreach}
 </tr>
 <tr>
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+	{if $option.selectable}
 		<td class="td-color-cf">
 		  <div class="variant--option">
 		  {block name='frontend_detail_configurator_variant_group_option_input'}
@@ -58,7 +64,7 @@
 				name="{$groupnameprefix}group[{$option.groupID}]"
 				value="{$option.optionID}"
 				title="{$option.optionname}"
-				{if !$option.selectable}disabled="disabled"{/if}
+				{if !$option.selectable || $is_disabled}disabled="disabled"{/if}
 				{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
 				{if $option.selected && $option.selectable}checked="checked"{/if} />
 			{/block}	
@@ -72,11 +78,13 @@
 			{/block}	
 			</div>	
 		</td>
+	{/if}	
 	{/foreach}
 </tr>
 {if $is_markup}
 <tr>
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+	{if $option.selectable}
 		<td class="td-color-cf">
 		  {if $cf_show_markup}
 		  	{if $cf_markups.$optionID.price_mod}
@@ -84,10 +92,12 @@
 			{/if}
 		  {/if}	
 		</td>
+	{/if}	
 	{/foreach}
 </tr>
 {/if}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}	
+{if $option.selectable}
 	{if $option["option_attributes"]["cf_subgroupid"]}
 		{$parent_subgroup_id=$option["option_attributes"]["cf_subgroupid"]}
 		{if ($parent_subgroup_id!="") && ($parent_subgroup_id!="0")}
@@ -96,11 +106,13 @@
 			{/if}
 		{/if}
 	{/if}
+{/if}	
 {/foreach}
 
 {else}
 
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
+{if $option.selectable}
 {assign var=optionID value=$option.optionID}
 {$column_cnt=0}
 {block name='frontend_detail_configurator_variant_group_option'}
@@ -116,7 +128,7 @@
 			value="{$option.optionID}"
 			title="{$option.optionname}"
 			{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
-			{if !$option.selectable}disabled="disabled"{/if}
+			{if !$option.selectable || $is_disabled}disabled="disabled"{/if}
 			{if $option.selected && $option.selectable}checked="checked"{/if} />
 	{/block}
 	</div>
@@ -170,9 +182,11 @@
 {/if}
 
 {/block}
+{/if}
 {/foreach}
 
 {/if}
 </table>
+</div>
 
 </div>

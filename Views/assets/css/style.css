@@ -94,6 +94,11 @@
 	height: 80px;
 }
 
+.disabled_object {
+	pointer-events: none;
+    opacity: 0.5;
+}
+
 @media screen and(min-width: @tabletViewportWidth) {
 	.product--details .content--proposals {
 		padding: 30px 30px;

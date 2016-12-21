@@ -39,7 +39,7 @@ private $dbeConfGroupFilelds = array(
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
               'support'=>'', 
-              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text inputs"},{"key":"FrontBackSide","value":"Surface design"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"}]'
+              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text inputs"},{"key":"TextArea","value":"Text area"},{"key":"FrontBackSide","value":"Surface design"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"}]'
               ),
         array('name'=>'groupinfo', 
               'type'=>'html', 
