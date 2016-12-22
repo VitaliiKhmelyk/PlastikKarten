@@ -3,7 +3,7 @@
 	{$groupnameprefix="custom"}
 {/if}
 
-<div class='cf_ajax_container_group_{$sConfigurator.groupID}'>
+<div class='cf_ajax_container_group_{$sConfigurator.groupID} cf_ajax_type_selectbox'>
 <select id="{$groupnameprefix}group[{$sConfigurator.groupID}]"  name="{$groupnameprefix}group[{$sConfigurator.groupID}]" {if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$sConfigurator.groupID}')"{/if}
 {if $is_disabled}disabled="disabled"{/if}>
 	{if empty($sConfigurator.user_selected)}

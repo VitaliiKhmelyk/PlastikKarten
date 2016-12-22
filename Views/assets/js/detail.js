@@ -182,7 +182,7 @@ function setLoadingMode() {
 }
 
 function replaceActiveContent(response) {
-var container,
+var container, optns, data, s, prefix,
     divContent= [ 
                'cf_ajax_container_common_info',
                'cf_ajax_container_price',
@@ -192,17 +192,67 @@ var container,
                'cf_ajax_container_order_info',
                'cf_ajax_container_count'
             ];  
+  //fixed divs
   $.each( divContent, function( i, val ) {
      container = response.find('.'+val);
      $('.'+val).html(container.html());
   });
+  //itemtype for buybox
   container = response.find('.buybox--inner');
   $('.buybox--inner').attr('itemtype',container.attr('itemtype'));
+  //link for description
   container = response.find('.cf_ajax_container_link1');
   $('.content--link.link--contact').attr('href',container.html()); 
+  //groups
   for (var i = 0; i < aGroupsDataArray.length; i++) {
-    container = response.find('.cf_ajax_container_group_'+aGroupsDataArray[i][0]);
-    $('.cf_ajax_container_group_'+aGroupsDataArray[i][0]).html(container.html());
+    //combobox
+    prefix = '.cf_ajax_container_group_'+aGroupsDataArray[i][0];
+    container = response.find(prefix+'.cf_ajax_type_selectbox');  
+    if (container.length > 0 ) { 
+      $(prefix+'.cf_ajax_type_selectbox').html(container.html());
+    } else {
+       //radiobox
+       container = response.find(prefix+'.cf_ajax_type_radio');
+       if (container.length > 0 ) { 
+         optns = aGroupsDataArray[i][2];
+          for (var j = 0; j < optns.length; j++) {
+            container = response.find('.cf_acgr_'+aGroupsDataArray[i][0]+'_'+optns[j][0]);
+            if (container.length > 0 ) { 
+               data=(container.html()).split(",");
+               container = $(prefix);
+               if (container.length > 0 ) {                  
+                 s='disabled_object';
+                 if (data[1]=='0') {
+                   container.removeClass(s);
+                 } else {
+                   container.addClass(s);  
+                 }
+               }
+               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio');
+               if (container.length > 0 ) {                  
+                 container.each( function() {
+                    if (data[0]=='0') { s = 'none'; } else { s = ''; }
+                    this.style.display = s;
+                 });
+               }
+               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_sub');
+               if (container.length > 0 ) {                  
+                 container.each( function() {
+                    if ((data[0]=='0') || (data[1]=='1')) { s = 'none'; } else { s = ''; }
+                    this.style.display = s;
+                 });
+               }
+               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_btn');
+               if (container.length > 0 ) {                  
+                 container.each( function() {
+                    if ((data[0]=='0') || (data[2]=='0')) { s = false; } else { s = true; }
+                    this.checked = s;
+                 });
+               }
+            }  
+          }  
+       }  
+    }
   }
 }  
 
@@ -271,6 +321,10 @@ $.overridePlugin('swAjaxVariant', {
                                        
                     // Get the ordernumber for the url
                     ordernumber = $.trim(me.$el.find(me.opts.orderNumberSelector).text());
+
+                    StateManager.addPlugin('select:not([data-no-fancy-select="true"])', 'swSelectboxReplacement')
+                        .addPlugin('*[data-add-article="true"]', 'swAddArticle')
+                        .addPlugin('*[data-modalbox="true"]', 'swModalbox');
 
                     //Plugin developers should subscribe to this event to update their plugins accordingly
                     $.publish('plugin/swAjaxVariant/onRequestData', [ me, response, values, stateObj.location ]);

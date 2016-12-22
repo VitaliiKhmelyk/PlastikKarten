@@ -69,8 +69,8 @@ private $dbeConfGroupFilelds = array(
               'type'=>'boolean', 
               'column_type'=>'int(1)',
               'label'=>'Skip variants', 
-              'help'=>'Allows to ignore current group during variants generation (for Selector and Radio buttons only)', 
-              'support'=>'', 
+              'help'=>'Allows to ignore current group during variants generation (for "Selector" and "Radio buttons" types only)', 
+              'support'=>'For "Selector" and "Radio buttons" types only', 
               'data'=>''
               )             
     );
