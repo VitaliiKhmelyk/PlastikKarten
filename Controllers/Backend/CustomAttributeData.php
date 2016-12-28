@@ -88,32 +88,18 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
             }     
         }   
         die(json_encode(array('success' => ($cnt > 0))));
-    }    
+    }  
 
-    public function isPseudoGroup($id) {
-      $res = false; 
-      $sql = "SELECT cf_pseudo, cf_grouptype FROM s_article_configurator_groups_attributes WHERE groupID = ".$id;
-      $data = Shopware()->Db()->fetchAll($sql);
-      if ($data) {
-        $t = $data[0]["cf_grouptype"]; 
-        if (($data[0]["cf_pseudo"] == 1) || (($t!="RadioBox") && ($t!="SelectBox") && (!empty($t)))) {
-          $res = true; 
-        } 
-      }  
-      return $res;
-    }
-
-    public function removePseudoGroupsAction()
+    public function getGroupsPseudoStatusAction()
     {
-       $data = $this->Request()->getParam('ids');
-       $groups = json_decode($data);  
        $result = [];     
-       foreach ($groups as $id) {
-          if ($this->isPseudoGroup($id)) {
-            $result[] = $id;
-          }
-       }        
+       $sql = 'SELECT groupID FROM s_article_configurator_groups_attributes WHERE (cf_pseudo=1) OR ((cf_grouptype!="") AND (cf_grouptype!="SelectBox") AND (cf_grouptype!="RadioBox"))';
+       $ids = Shopware()->Db()->fetchAll($sql);
+       for($i = 0; $i < count($ids); $i++) {
+         $result[] = $ids[$i]['groupID'];   
+       } 
        die(json_encode(array('success' => true, 'data' => $result)));
     }
+
 
 }

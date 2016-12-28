@@ -37,7 +37,7 @@
 </td>
 {/if}
 {$column_cnt=$column_cnt+1}
-<td class="td-color-cf" nowrap>
+<td class="td-color-cf">
 	<div class="variant--option">
 	{block name='frontend_detail_configurator_variant_group_option_label'}
 		<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
@@ -48,12 +48,14 @@
 	{/block}	
 	</div>
 </td>
-{$column_cnt=$column_cnt+1}
-<td class="td-color-cf" style="width:100%">
+</tr>
+
+<tr>
+<td class="td-color-cf" colspan="{$column_cnt}">
 	<div class="variant--option">
 	{block name='frontend_detail_configurator_variant_group_option_input'}
-		<input type="text"
-			class="option--input"
+		<textarea
+			rows=4
 			id="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			name="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]"
 			value=""
@@ -62,11 +64,13 @@
 			oninput="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
 			onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"
 			style="width:100%;"
-			/>
+			>
+		</textarea>	
 	{/block}						
 	</div>
 </td>
 </tr>
+
 {if $option["option_attributes"]["cf_subgroupid"]}
 	{$parent_subgroup_id=$option["option_attributes"]["cf_subgroupid"]}
 	{if ($parent_subgroup_id!="") && ($parent_subgroup_id!="0")}

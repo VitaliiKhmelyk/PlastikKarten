@@ -9,12 +9,12 @@
     {if ($option.media_data.src.original!="")}
       {$is_horizontal=true}
       {$is_media_presents=true}
-    {/if}
-    {if $cf_show_markup}
+    {/if}   
+  {/if}
+  {if $cf_show_markup}
 		{if $cf_markups.$optionID.price_mod}
 		  {$is_markup=true}
 		{/if}
-	{/if}	
   {/if}
 {/foreach}
 
@@ -59,8 +59,8 @@
 				name="{$groupnameprefix}group[{$option.groupID}]"
 				value="{$option.optionID}"
 				title="{$option.optionname}"
-				{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
-				{if $option.selected && $option.selectable}checked="checked"{/if} />
+				{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"{/if}
+				{if $option.selected && $option.selectable && $sConfigurator.user_selected}checked="checked"{/if} />
 			{/block}	
 			{block name='frontend_detail_configurator_variant_group_option_label'}
 			<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
@@ -73,25 +73,25 @@
 		</td>
 	{/foreach}
 </tr>
-{if $is_markup}
-<tr>
+
+{if $cf_show_markup}	
+<tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_markup' {if !$is_markup}style="display:none"{/if}>
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
 		<td class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio td-color-cf' {if !$option.selectable}style="display:none"{/if}>
-		  {if $cf_show_markup}
-		  	{if $cf_markups.$optionID.price_mod}
-			  <span class="{$cf_markups.$optionID.price_color_class}">{$cf_markups.$optionID.price_mod|currency}</span>
-			{/if}
-		  {/if}	
+			  <span class="{$cf_markups.$optionID.price_color_class} cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_data_markup">
+			   {if $cf_markups.$optionID.price_mod}{$cf_markups.$optionID.price_mod|currency}{/if}
+			  </span>			
 		</td>
 	{/foreach}
 </tr>
-{/if}
+{/if}	
+
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}	
 	{if $option["option_attributes"]["cf_subgroupid"]}
 		{$parent_subgroup_id=$option["option_attributes"]["cf_subgroupid"]}
 		{if ($parent_subgroup_id!="") && ($parent_subgroup_id!="0")}
 			{if in_array($parent_subgroup_id, $subgroups)}
-			  <tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_sub' {if !$option.selectable || $is_disabled}style="display:none"{/if}>
+			  <tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_sub' {if !$option.selectable || !$option.selected || $is_disabled}style="display:none"{/if}>
 			    <td class="td-color-cf"><div id="parent_subgroup_{$parent_subgroup_id}_container"></div></td>
 			  </tr>
 			{/if}
@@ -116,8 +116,8 @@
 			name="{$groupnameprefix}group[{$option.groupID}]"
 			value="{$option.optionID}"
 			title="{$option.optionname}"
-			{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}')"{/if}
-			{if $option.selected && $option.selectable}checked="checked"{/if} />
+			{if !($sConfigurator["pseudo"])}data-ajax-select-variants="true"{else}onchange="saveCustomParamsStatus('{$option.groupID}','{$option.optionID}')"{/if}
+			{if $option.selected && $option.selectable && $sConfigurator.user_selected}checked="checked"{/if} />
 	{/block}
 	</div>
 </td>
@@ -149,21 +149,29 @@
 				{$option.optionname}				
 			{/block}
 		</label>
-		{if $cf_show_markup}
-			{if $cf_markups.$optionID.price_mod}
-				<span class="{$cf_markups.$optionID.price_color_class}">{$cf_markups.$optionID.price_mod|currency}</span>
-			{/if}
-		{/if}
 	{/block}								
 	</div>
 </td>
+{if $cf_show_markup}			
+{$column_cnt=$column_cnt+1}
+<td class="td-color-cf">
+	<div class="variant--option" style="width:100%;text-align:right;">
+	{block name='frontend_detail_configurator_variant_group_option_markup'}
+		<span class="{$cf_markups.$optionID.price_color_class} cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_data_markup">
+				{if $cf_markups.$optionID.price_mod} {$cf_markups.$optionID.price_mod|currency}{/if}
+		</span>		
+	{/block}								
+	</div>
+</td>	
+{/if}
+
 </tr>
 
 {if $option["option_attributes"]["cf_subgroupid"]}
 	{$parent_subgroup_id=$option["option_attributes"]["cf_subgroupid"]}
 	{if ($parent_subgroup_id!="") && ($parent_subgroup_id!="0")}
 		{if in_array($parent_subgroup_id, $subgroups)}
-		  <tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_sub' {if !$option.selectable || $is_disabled }style="display:none"{/if}>
+		  <tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_sub' {if !$option.selectable || !$option.selected || $is_disabled }style="display:none"{/if}>
 		    <td class="td-color-cf" colspan="{$column_cnt}"><div id="parent_subgroup_{$parent_subgroup_id}_container"></div></td>
 		  </tr>
 		{/if}

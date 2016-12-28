@@ -7,37 +7,63 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
      * Defines an override applied to a class.
      * @string
      */
-    override: 'Shopware.apps.Article.controller.Variant',
+    override: 'Shopware.apps.Article.controller.Variant',    
+
+    onSaveAttrCallback: function(group_store) {      
+      Ext.Ajax.request({
+           url: '{url controller=CustomAttributeData action=getGroupsPseudoStatus}',
+           method: 'POST',
+           cache: false,
+           success: function(response) {
+                var res = Ext.decode(response.responseText);                
+                var data = res['data'];   
+                group_store.each(function(item) {
+                  var new_val= Ext.Array.contains(data, (item.get('id')).toString());
+                  item['data']["pseudo"] = new_val;
+                });
+           }
+      });      
+    },
 
     onSaveGroup: function(group, form, window) {
-        var me = this;
+        var me = this,
+            group_store = me.subApplication.articleWindow.configuratorGroupStore;
         if (!form.getForm().isValid()) {
             return;
-        }
-        form.getForm().updateRecord(group);        
-        var name = group.get('name');
-        group.save({
-            success: function(record, operation) {                
-                window.attributeForm.saveAttribute(record.get('id'));                
-                window.destroy();
-                var message = Ext.String.format(me.snippets.success.groupSave, name);
-                Shopware.Notification.createGrowlMessage(me.snippets.success.title, message, me.snippets.growlMessage);
-                me.getConfiguratorGroupListing().reconfigure(me.getConfiguratorGroupListing().getStore());
-            },
-            failure: function(record, operation) {
-                window.destroy();
-                var rawData = record.getProxy().getReader().rawData,
-                    message = rawData.message;
-
-                if (Ext.isString(message) && message.length > 0) {
-                    message = Ext.String.format(me.snippets.failure.groupSave, name) + '<br>' + message;
-                } else {
-                    message = Ext.String.format(me.snippets.failure.groupSave, name) + '<br>' + me.snippets.failure.noMoreInformation;
-                }
-                Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
-            }
-        });
+        }                 
+        window.attributeForm.saveAttribute(group.get('id'), me.onSaveAttrCallback(group_store)); 
+        me.callParent(arguments); 
     },
+
+    // onSaveGroup: function(group, form, window) {
+    //     var me = this,group_store = me.subApplication.articleWindow.configuratorGroupStore;
+    //     if (!form.getForm().isValid()) {
+    //         return;
+    //     }
+    //     form.getForm().updateRecord(group);        
+    //     var name = group.get('name');
+    //     group.save({
+    //         success: function(record, operation) {                
+    //             window.attributeForm.saveAttribute(group.get('id'), me.onSaveAttrCallback(group_store));              
+    //             window.destroy();
+    //             var message = Ext.String.format(me.snippets.success.groupSave, name);
+    //             Shopware.Notification.createGrowlMessage(me.snippets.success.title, message, me.snippets.growlMessage);
+    //             me.getConfiguratorGroupListing().reconfigure(me.getConfiguratorGroupListing().getStore());
+    //         },
+    //         failure: function(record, operation) {
+    //             window.destroy();
+    //             var rawData = record.getProxy().getReader().rawData,
+    //                 message = rawData.message;
+
+    //             if (Ext.isString(message) && message.length > 0) {
+    //                 message = Ext.String.format(me.snippets.failure.groupSave, name) + '<br>' + message;
+    //             } else {
+    //                 message = Ext.String.format(me.snippets.failure.groupSave, name) + '<br>' + me.snippets.failure.noMoreInformation;
+    //             }
+    //             Shopware.Notification.createGrowlMessage(me.snippets.failure.title, message, me.snippets.growlMessage);
+    //         }
+    //     });
+    // },
 
     onSaveOption: function(option, form, window) {
         var me = this;

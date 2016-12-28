@@ -58,12 +58,10 @@
 
 {block name='frontend_detail_index_image_container'}     
 
-   <table class="table-group-cf">
-   <tr><td>
-    <div class="product--image-container-cf">
+    <div class="product--container-tl">
        {$smarty.block.parent}
     </div>
-    <div class="product--image-container-right-cf">
+    <div class="product--container-tr">
       <table class="table-group-cf">
           <tr><td>
               {block name="frontend_detail_index_tabs_cf"}
@@ -100,11 +98,11 @@
       {/block}
 
     </div>
-    </td></tr>
-   </table>
+
    {block name='frontend_detail_description_our_comment_cf'}
+     <div class="cf_ajax_container_comments table-group-cf">
         {if $sArticle.attr3}
-        <table class="table-group-cf">
+        <table>
         <tr><td>
             {block name='frontend_detail_description_our_comment_title_content_cf'}
               <div class="product--data-comments-cf">
@@ -114,6 +112,7 @@
         </td></tr>
         </table>    
         {/if}
+     </div>
    {/block}   
 
  {/block}
@@ -174,7 +173,7 @@
                     {block name='frontend_detail_data_price_default_loading'}                           
                       <div class="cf_ajax_container_loading" style="display:none;">
                         <span class="price--content content--default">
-                           {s name="progress/progress_bar_loading" namespace="backend/index/view/theme_cache"}Loading data...{/s}   
+                           <a  href="javascript:void(0)">{s name="progress/progress_bar_loading" namespace="backend/index/view/theme_cache"}Loading data...{/s}</a>   
                         </span>
                       </div>  
                     {/block}
@@ -186,7 +185,7 @@
                     {block name='frontend_detail_index_buy_container_inner'}
                         <div itemprop="offers" itemscope itemtype="{if $sArticle.sBlockPrices}http://schema.org/AggregateOffer{else}http://schema.org/Offer{/if}" class="buybox--inner">
 
-                            <div class="product--image-container-right-cf">
+                            <div class="product--container-bl">
                             {* Configurator drop down menu's *}
                             {block name="frontend_detail_index_configurator"}
                                 <div class="product--configurator cf_ajax_container_groups">
@@ -197,7 +196,7 @@
                             {/block}
                             </div>
 
-                            <div class="product--image-container-cf">
+                            <div class="product--container-br">
                             {block name='frontend_detail_index_data'}
                               <div class="cf_ajax_container_price">
                                 {if $sArticle.sBlockPrices}
@@ -214,14 +213,10 @@
                             {block name='frontend_detail_index_after_data'}{/block}
                             
                             {block name="frontend_detail_index_your_product"}
-                              <div class="cf_ajax_container_product_txt">
+                              <div class="cf_ajax_container_product_txt table-group-cf">
                                {if !empty($myProductInfo)}
-                                 <div class="table-group-cf">
-                                    <h4>{s name="YourProduct" namespace='CardFormular'}Your Product{/s}<h4>
-                                 </div>   
-                                 <div class="table-group-cf">
-                                    {$myProductInfo}
-                                 </div>   
+                                 <div><h4>{s name="YourProduct" namespace='CardFormular'}Your Product{/s}<h4></div>   
+                                 <div>{$myProductInfo}</div>   
                                {/if}
                               </div>   
                             {/block}
@@ -231,22 +226,21 @@
                                <div class="cf_ajax_container_buy">
                                 {include file="frontend/card_formular/detail/buy.tpl"}
                                </div> 
-                            {/block}                            
-
-                            </div>
+                            {/block}   
 
                             {* Product actions *}
                             {block name="frontend_detail_index_actions"}
-                                <nav class="product--actions">
-                                    {include file="frontend/detail/actions.tpl"}
-                                </nav>
-                            {/block}
+                              <div class="product--data-spacer-cf"></div>
+                            {/block}          
+
+                            </div>                           
                         </div>
                     {/block}
 
                     {* Product - Base information *}
                     {block name='frontend_detail_index_buy_container_base_info'}
-                        <div class="cf_ajax_container_order_info">
+                        <div class="product--container-bl cf_ajax_container_order_info">
+                        <nav class="product--actions">{include file="frontend/detail/actions.tpl"}</nav>
                         <ul class="product--base-info list--unstyled" >
 
                             {* Product SKU *}

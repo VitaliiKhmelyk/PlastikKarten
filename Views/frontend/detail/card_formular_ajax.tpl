@@ -46,16 +46,12 @@
               {include file="frontend/card_formular/detail/data.tpl" sArticle=$sArticle sView=1}
          </div>  
          
-         <div class="cf_ajax_container_product_txt">
-             {if !empty($myProductInfo)}
-                 <div class="table-group-cf">
-                    <h4>{s name="YourProduct" namespace='CardFormular'}Your Product{/s}</h4>
-                 </div>   
-                 <div class="table-group-cf">
-                    {$myProductInfo}
-                 </div>   
-              {/if}
-         </div>  
+         {if !empty($myProductInfo)}
+           <div class="cf_ajax_container_product_txt">             
+              <div><h4>{s name="YourProduct" namespace='CardFormular'}Your Product{/s}<h4></div>   
+              <div>{$myProductInfo}</div>                  
+           </div>           
+         {/if}
 
          <div class="cf_ajax_container_buy">
             {include file="frontend/card_formular/detail/buy.tpl"}
@@ -75,6 +71,17 @@
             {if $sArticle.packunit} {$sArticle.packunit}{/if}  
         </div>   
 
+        {if $sArticle.attr3}
+          <div class="cf_ajax_container_comments">          
+            <table>
+            <tr><td>
+                  <div class="product--data-comments-cf">
+                    {$sArticle.attr3}
+                  </div>  
+            </td></tr>
+            </table>            
+          </div>
+        {/if}
 
         {$group_enabled = true}
         {foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
@@ -95,6 +102,7 @@
               {if ($group_type=="RadioBox")}
                 {include file="frontend/card_formular/detail/groups/radiobox_object.tpl"} 
               {else}
+                {$ajax_selectbox_mode = 1}
                 {include file="frontend/card_formular/detail/groups/selectbox_object.tpl"} 
               {/if}
             {/if}

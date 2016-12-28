@@ -47,6 +47,10 @@ function setWorkflowStage(stage_idx) {
      idx = parseInt(srcObj.value);
    }
  }
+ srcObj = document.getElementById("workflow_stage_cnt_"+idx.toString()); 
+ if ((srcObj) && (srcObj.classList.contains('is--disabled'))) {
+   return;
+ } 
  var maxVobj = document.getElementById(prefix + "cnt_");
  if ((maxVobj)&&(parseInt(maxVobj.value)>1)) {
     var maxV = parseInt(maxVobj.value);    
@@ -59,7 +63,7 @@ function setWorkflowStage(stage_idx) {
             srcObj[j].style.display = 'none';
         }  
         srcObj = document.getElementById(prefix+"cnt_"+i.toString()); 
-        if (srcObj) {
+        if ((srcObj) && (!(srcObj.classList.contains('is--disabled')))) {
             srcObj.classList.remove('is--primary');
             srcObj.classList.add('is--secondary');
         } 
@@ -70,7 +74,7 @@ function setWorkflowStage(stage_idx) {
       srcObj[j].style.display = 'block';
     } 
     srcObj = document.getElementById(prefix+"cnt_"+idx.toString()); 
-    if (srcObj) {
+    if ((srcObj) && (!(srcObj.classList.contains('is--disabled')))) {
       srcObj.classList.remove('is--secondary');
       srcObj.classList.add('is--primary');
     }  
@@ -81,23 +85,75 @@ function setWorkflowStage(stage_idx) {
  }
 }  
 
+function checkWorkflowStage() {
+  var idx, stage_empty, srcObj;
+  if (typeof(aWorkflowDataArray) !== 'undefined')  {
+    srcObj = document.getElementById("cf_custom_workflow_stage"); 
+    if (srcObj) {
+     idx = parseInt(srcObj.value);
+    } else {
+     idx = 0;
+    }
+    for (var i = 0; i < aWorkflowDataArray.length; i++) {
+      stage_empty = true;
+      for (var j = 0; j < aWorkflowDataArray[i].length; j++) {
+        if (stage_empty) {
+          for (var k = 0; k < aGroupsDataArray.length; k++) {
+             if (aGroupsDataArray[k][0]==aWorkflowDataArray[i][j]) {
+               stage_empty = (aGroupsDataArray[k][4])&&(!(aGroupsDataArray[k][3])); 
+               break; 
+             }
+          }
+        }
+      }
+      srcObj = document.getElementById("workflow_stage_cnt_"+i.toString()); 
+      if (srcObj) {
+        if (stage_empty) {
+         if (i > 0) {  
+           srcObj.classList.remove('is--primary');
+           srcObj.classList.remove('is--secondary');
+           srcObj.classList.add('is--disabled');
+           if (i==idx) {
+              setWorkflowStage(0);
+           }
+         }
+        } else {  
+           srcObj.classList.remove('is--disabled');
+           if (i==idx) {
+              srcObj.classList.add('is--primary');
+           } else {
+              srcObj.classList.add('is--secondary');
+           }
+        }    
+      } 
+    }
+  }
+}  
+
 function saveCustomParamsStatus(group_id, option_id) {
-  var i, j, optns, grp_id, opt_id, srcObj, srcObjParent, newval;
+  var i, j, optns, grp_id, opt_id, srcObj, srcObjParent, newval, arrayGrps,  arrayOpt, arrayOpts;
   var prefix='custom';
   for (i = 0; i < aGroupsDataArray.length; i++) {
     grp_id = aGroupsDataArray[i][0];
     if (((group_id) && (group_id == grp_id)) || (!group_id)) {
       srcObjParent = document.getElementById(prefix + 'group['+ grp_id + ']'); 
+      if (!srcObjParent) {
+        srcObjParent = document.getElementById('group['+ grp_id + ']'); 
+      }  
       if (srcObjParent) {
         aGroupsDataArray[i][1]=srcObjParent.value;
       } else {
-        aGroupsDataArray[i][1]="";
-      } 
+        aGroupsDataArray[i][1]="";        
+      }
+      arrayOpts = new Array(); 
       optns = aGroupsDataArray[i][2];
-      for (j = 0; j < optns.length; j++) {
-        opt_id = optns[j][0];
+      for (j = 0; j < optns.length; j++) {        
+        opt_id = optns[j][0];        
         if (((option_id) && (option_id == opt_id)) || (!option_id)) {
           srcObj = document.getElementById(prefix + 'group['+ grp_id + ']['+opt_id+']');       
+          if (!srcObj) {
+            srcObj = document.getElementById('group['+ grp_id + ']['+opt_id+']');    
+          }
           if (srcObj) {
             aGroupsDataArray[i][2][j][1]=srcObj.value;
             newval = srcObj.value;
@@ -108,48 +164,28 @@ function saveCustomParamsStatus(group_id, option_id) {
               aGroupsDataArray[i][1] = srcObj.value;
             }
           } 
-        }    
+        }
+        arrayOpt = new Array(); 
+        arrayOpt.push(opt_id);
+        arrayOpt.push(aGroupsDataArray[i][2][j][1]);
+        arrayOpts.push(arrayOpt);    
+      }
+      srcObj = document.getElementById('pseudo-' + grp_id);
+      if (srcObj) {
+        arrayGrps = new Array();
+        arrayGrps.push(aGroupsDataArray[i][5]);
+        if (aGroupsDataArray[i][6]) {
+          arrayGrps.push(aGroupsDataArray[i][1]);
+        } else {
+          arrayGrps.push(arrayOpts);
+        }
+        srcObj.value =JSON.stringify(arrayGrps);
+        //console.log(srcObj.value);
       }  
-    }
+    }    
   }  
   //console.log(aGroupsDataArray);
 }
-
-// function loadCustomParamsStatus() {
-//   var i, j, optns, grp_id, opt_id, srcObj, srcObjParent;
-//   var prefix='custom';
-//   var event = new Event('change');
-//   for (i = 0; i < aGroupsDataArray.length; i++) {
-//     grp_id = aGroupsDataArray[i][0];
-//     n = prefix + 'group['+ grp_id + ']';
-//     srcObjParent = document.getElementById(n); 
-//     if (srcObjParent) {          
-//       if (srcObjParent.tagName && srcObjParent.tagName.toLowerCase() == "select") {
-//          for (j = 0; j < srcObjParent.options.length; j++) {
-//             if (srcObjParent.options[j].value == aGroupsDataArray[i][1]) { 
-//                srcObjParent.options[j].selected = true;   
-//                srcObjParent.dispatchEvent(event);            
-//                break;          
-//             }    
-//          }
-//       } else {
-//         srcObjParent.value = aGroupsDataArray[i][1];  
-//       }
-//     } 
-//     optns = aGroupsDataArray[i][2];
-//     for (j = 0; j < optns.length; j++) {
-//       opt_id = optns[j][0];
-//       srcObj = document.getElementById(prefix + 'group['+ grp_id + ']['+opt_id+']');       
-//       if (srcObj) {      
-//         if (srcObj.getAttribute("type") == "radio") {
-//             srcObj.checked = (aGroupsDataArray[i][1] == srcObj.value);
-//         } else {
-//           srcObj.value = aGroupsDataArray[i][2][j][1]; 
-//         }
-//       }     
-//     }  
-//   }  
-// }
 
 function setSubgroupParentObj(id) {
    var srcObj = document.getElementsByClassName("child_subgroup_"+id+"_container");
@@ -169,7 +205,7 @@ function executeSetSubgroupParentObj() {
     setSubgroupParentObj(aSubGroupsArray[i]);
   }
  } 
-}  
+}
 
 function openModalInfo(title_str, content_str) {
 	$.modal.open('<div style="padding:0 20px 20px 20px"><div style="width:100%"><h2>'+title_str+'</h2></div><div style="width:100%">'+content_str+'</div></div>', { title: title_str});
@@ -181,8 +217,8 @@ function setLoadingMode() {
   $('.entry--content').html("");
 }
 
-function replaceActiveContent(response) {
-var container, optns, data, s, prefix,
+function replaceActiveContent(response) {  
+var container, container2, optns, data, data_arr, s, prefix, cnt,
     divContent= [ 
                'cf_ajax_container_common_info',
                'cf_ajax_container_price',
@@ -190,12 +226,17 @@ var container, optns, data, s, prefix,
                'cf_ajax_container_buy',
                'cf_ajax_container_market_price',
                'cf_ajax_container_order_info',
-               'cf_ajax_container_count'
+               'cf_ajax_container_count',
+               'cf_ajax_container_comments'
             ];  
   //fixed divs
   $.each( divContent, function( i, val ) {
      container = response.find('.'+val);
-     $('.'+val).html(container.html());
+     if (container.length > 0 ) { 
+       $('.'+val).html(container.html());
+     } else {
+       $('.'+val).html(''); 
+     }
   });
   //itemtype for buybox
   container = response.find('.buybox--inner');
@@ -205,52 +246,107 @@ var container, optns, data, s, prefix,
   $('.content--link.link--contact').attr('href',container.html()); 
   //groups
   for (var i = 0; i < aGroupsDataArray.length; i++) {
+    cnt=0;
     //combobox
     prefix = '.cf_ajax_container_group_'+aGroupsDataArray[i][0];
-    container = response.find(prefix+'.cf_ajax_type_selectbox');  
-    if (container.length > 0 ) { 
-      $(prefix+'.cf_ajax_type_selectbox').html(container.html());
+    container = response.find(prefix+'.cf_ajax_type_selectbox');   
+    if (container.length > 0) { 
+       container2 = $(prefix+'.cf_ajax_type_selectbox');
+       if (container2.length > 0) { 
+           container2.html(container.html());
+       } 
+      container = response.find(prefix+'.cf_data');  
+      if (container.length > 0) {  
+        data_arr=(container.html()).split(";");
+        for (var j = 0; j < data_arr.length; j++) {
+           data_arr[j]=(data_arr[j]).split(",");
+           data_arr[j][0]=parseInt(data_arr[j][0]);
+           if ((j > 0) && (data_arr[j][0] > 0) && (data_arr[j][1]!='0')) { cnt += 1;} ;
+        }  
+        aGroupsDataArray[i][4]=(data_arr[0][0]!=0);      
+        container = $(prefix+'_na');
+        container.each( function() {
+          if (cnt > 0) { s = 'none'; } else { s = ''; }
+            this.style.display = s;
+        });
+        optns = aGroupsDataArray[i][2];
+        for (var j = 0; j < optns.length; j++) {
+           data=[];
+           for (var k = 1; k < data_arr.length; k++) {
+              if (data_arr[k][0]==optns[j][0]) {
+                data=data_arr[k];
+                break;
+              }
+           }
+           if (data.length > 0 ) {  
+               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_selectbox_sub');
+               container.each( function() {
+                      if ((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')) { s = 'none'; } else { s = ''; }
+                      this.style.display = s;            
+               });
+           } 
+        }
+      }
     } else {
        //radiobox
        container = response.find(prefix+'.cf_ajax_type_radio');
        if (container.length > 0 ) { 
+         data_arr=(container.html()).split(";");
+         for (var j = 0; j < data_arr.length; j++) {
+           data_arr[j]=(data_arr[j]).split(",");
+           data_arr[j][0]=parseInt(data_arr[j][0]);
+           if ((j > 0) && (data_arr[j][0] > 0) && (data_arr[j][1]!='0')) { cnt += 1;} ;
+         } 
+         aGroupsDataArray[i][4]=(data_arr[0][0]!=0); 
+         container = $(prefix);
+         if (container.length > 0 ) {                  
+            s='disabled_object';
+            if (data_arr[0][0]==0) {
+              container.removeClass(s);
+            } else {
+              container.addClass(s);  
+            }
+         }
+         container = $(prefix+'_na');
+         container.each( function() {
+         if (cnt > 0) { s = 'none'; } else { s = ''; }
+            this.style.display = s;
+         });
          optns = aGroupsDataArray[i][2];
-          for (var j = 0; j < optns.length; j++) {
-            container = response.find('.cf_acgr_'+aGroupsDataArray[i][0]+'_'+optns[j][0]);
-            if (container.length > 0 ) { 
-               data=(container.html()).split(",");
-               container = $(prefix);
-               if (container.length > 0 ) {                  
-                 s='disabled_object';
-                 if (data[1]=='0') {
-                   container.removeClass(s);
-                 } else {
-                   container.addClass(s);  
-                 }
-               }
+         for (var j = 0; j < optns.length; j++) {
+            container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_markup');
+            container.each( function() {
+                if (data_arr[0][1]=='0') { s = 'none'; } else { s = ''; }
+                    this.style.display = s;
+            });
+            data=[];
+            for (var k = 1; k < data_arr.length; k++) {
+              if (data_arr[k][0]==optns[j][0]) {
+                data=data_arr[k];
+                break;
+              }
+            } 
+            if (data.length > 0 ) {               
                container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio');
-               if (container.length > 0 ) {                  
-                 container.each( function() {
-                    if (data[0]=='0') { s = 'none'; } else { s = ''; }
+               container.each( function() {
+                    if (data[1]=='0') { s = 'none'; } else { s = ''; }
                     this.style.display = s;
-                 });
-               }
+               });
                container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_sub');
-               if (container.length > 0 ) {                  
-                 container.each( function() {
-                    if ((data[0]=='0') || (data[1]=='1')) { s = 'none'; } else { s = ''; }
-                    this.style.display = s;
-                 });
-               }
+               container.each( function() {
+                    if ((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')) { s = 'none'; } else { s = ''; }
+                    this.style.display = s;                   
+               });
                container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_btn');
+               container.each( function() {
+                   this.checked = ((data[1]=='1') && (data[2]=='1'));
+               });
+               container = $(prefix+'_'+optns[j][0]+'.cf_data_markup');
                if (container.length > 0 ) {                  
-                 container.each( function() {
-                    if ((data[0]=='0') || (data[2]=='0')) { s = false; } else { s = true; }
-                    this.checked = s;
-                 });
+                 container.html(data[3]);
                }
             }  
-          }  
+         }  
        }  
     }
   }
@@ -261,9 +357,10 @@ if (isCardFormular) {
 //console.log('card formular detected!');  
 
 executeSetSubgroupParentObj();
+saveCustomParamsStatus();
+checkWorkflowStage();
 setWorkflowStage();
 setCountInputEvents();
-
 
 $.overridePlugin('swAjaxVariant', {
     requestData: function(values, pushState) {
@@ -354,15 +451,11 @@ $.overridePlugin('swAjaxVariant', {
         }
 });
 
-$.subscribe('plugin/swAjaxVariant/onBeforeRequestData', function(me, values, location) {    
-    //console.log('onBeforeRequestData');  
-    saveCustomParamsStatus();
-});
-
 $.subscribe('plugin/swAjaxVariant/onRequestData', function(me, response, values, location) {    
     //console.log('onRequestData');  
     setCountInputEvents();
     saveCustomParamsStatus();
+    checkWorkflowStage();
 });
 
 };
