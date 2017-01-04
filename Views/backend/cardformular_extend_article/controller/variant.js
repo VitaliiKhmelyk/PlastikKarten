@@ -10,17 +10,24 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
     override: 'Shopware.apps.Article.controller.Variant',    
 
     onSaveAttrCallback: function(group_store) {      
+      var rand = Math.floor(Math.random() * 1000000);
       Ext.Ajax.request({
            url: '{url controller=CustomAttributeData action=getGroupsPseudoStatus}',
            method: 'POST',
            cache: false,
+           params: {
+                rnd : rand
+            },
            success: function(response) {
                 var res = Ext.decode(response.responseText);                
                 var data = res['data'];   
-                group_store.each(function(item) {
-                  var new_val= Ext.Array.contains(data, (item.get('id')).toString());
-                  item['data']["pseudo"] = new_val;
-                });
+                var rand2 = res['rnd'];  
+                if (rand.toString()==rand2.toString()) { 
+	                group_store.each(function(item) {
+	                  var new_val= Ext.Array.contains(data, (item.get('id')).toString());
+	                  item['data']["pseudo"] = new_val;
+	                });
+                }
            }
       });      
     },
@@ -75,7 +82,8 @@ Ext.define('Shopware.apps.CardformularExtendArticle.controller.Variant', {
         option.save({
             success: function(record, operation) {
                 window.attributeForm.saveAttribute(record.get('id'));
-                window.attributeForm.saveMediaAttribute(record.get('id'), 'optionID', record.get('cfMediaid'));
+                window.attributeForm.saveMediaAttribute(record.get('id'), 'optionID', record.get('cfMediaid'), 'cf_mediaid');
+                window.attributeForm.saveMediaAttribute(record.get('id'), 'optionID', record.get('cfDesignmediaid'), 'cf_designmediaid');
                 window.destroy();
                 var message = Ext.String.format(me.snippets.success.optionSave, name);
                 Shopware.Notification.createGrowlMessage(me.snippets.success.title, message, me.snippets.growlMessage);

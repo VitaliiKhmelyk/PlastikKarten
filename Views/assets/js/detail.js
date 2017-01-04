@@ -174,10 +174,14 @@ function saveCustomParamsStatus(group_id, option_id) {
       if (srcObj) {
         arrayGrps = new Array();
         arrayGrps.push(aGroupsDataArray[i][5]);
-        if (aGroupsDataArray[i][6]) {
-          arrayGrps.push(aGroupsDataArray[i][1]);
-        } else {
-          arrayGrps.push(arrayOpts);
+        if (aGroupsDataArray[i][4]) {
+          arrayGrps.push("");
+        } else {  
+          if (aGroupsDataArray[i][6]) {
+            arrayGrps.push(aGroupsDataArray[i][1]);
+          } else {
+            arrayGrps.push(arrayOpts);
+          }
         }
         srcObj.value =JSON.stringify(arrayGrps);
         //console.log(srcObj.value);
@@ -354,8 +358,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
 
 if (isCardFormular) {
 
-//console.log('card formular detected!');  
-
+//console.log('card formular detected!'); 
 executeSetSubgroupParentObj();
 saveCustomParamsStatus();
 checkWorkflowStage();
@@ -366,73 +369,53 @@ $.overridePlugin('swAjaxVariant', {
     requestData: function(values, pushState) {
             var me = this,           
                 flag_md5_obj = '.cf_ajax_container_rand',
-                flag_obj = '.cf_ajax_container_flag';           
-            
+                flag_obj = '.cf_ajax_container_flag';
             setLoadingMode();
-
             if (($(flag_obj)) && ($(flag_obj).val()!="") && ($(flag_obj).val()!="0"))  {
                $(flag_md5_obj).val("");
                //console.log('waiting for completion!');
                return;
             }
             //console.log('ajax started');
-
             var flag_md5 = $(flag_md5_obj).val();
-            $(flag_obj).val(flag_md5);            
-
+            $(flag_obj).val(flag_md5);
             $.loadingIndicator.open({
                 closeOnClick: false,
                 delay: 5000
             });
-
             var stateObj = me._createHistoryStateObject();
-
             $.publish('plugin/swAjaxVariant/onBeforeRequestData', [ me, values, stateObj.location ]);
-
             values.template = 'ajax';
             values.templatemode = '_ajax';
-
             if(stateObj.params.hasOwnProperty('c')) {
                 values.c = stateObj.params.c;
             }
-
-            
-
             $.ajax({
                 url: stateObj.location,
                 data: values,
                 method: 'GET',
-                success: function(response) {
-                    
+                success: function(response) {                    
                     if ($(flag_md5_obj).val() != flag_md5) {
                       //console.log('form has been changed!');
                       return;
                     }
-
                     var $response = $($.parseHTML(response)),
                         $container,
                         ordernumber;
-
                     // Replace the content
-                    replaceActiveContent($response);
-                                       
+                    replaceActiveContent($response);                                       
                     // Get the ordernumber for the url
                     ordernumber = $.trim(me.$el.find(me.opts.orderNumberSelector).text());
-
                     StateManager.addPlugin('select:not([data-no-fancy-select="true"])', 'swSelectboxReplacement')
                         .addPlugin('*[data-add-article="true"]', 'swAddArticle')
                         .addPlugin('*[data-modalbox="true"]', 'swModalbox');
-
                     //Plugin developers should subscribe to this event to update their plugins accordingly
                     $.publish('plugin/swAjaxVariant/onRequestData', [ me, response, values, stateObj.location ]);
-
                     if(pushState && me.hasHistorySupport) {
                         var location = stateObj.location + '?number=' + ordernumber;
-
                         if(stateObj.params.hasOwnProperty('c')) {
                             location += '&c=' + stateObj.params.c;
                         }
-
                         window.history.pushState(stateObj.state, stateObj.title, location);
                     }
                 },

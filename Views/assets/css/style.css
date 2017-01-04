@@ -88,8 +88,10 @@
 }
 
 .product--details .img_option_cf {
-	height: 100px;
-	width: 100px;
+	max-width:100px; 
+	max-height:100px; 
+	width:auto; 
+	height:auto;
 }
 
 .product--details .img_td_cf {

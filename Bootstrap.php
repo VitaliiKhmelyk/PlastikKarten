@@ -57,7 +57,7 @@ private $dbeConfGroupFilelds = array(
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
               'support'=>'', 
-              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text input"},{"key":"TextArea","value":"Text area"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"}]'
+              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text input"},{"key":"TextArea","value":"Text area"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"},{"key":"DesignCanvas","value":"Design canvas"}]'
               ),
         array('name'=>'groupinfo', 
               'type'=>'html', 
@@ -94,11 +94,11 @@ private $dbeConfGroupFilelds = array(
     );
 
 private $dbeConfOptionFilelds = array(       
-        array('name'=>'optioninfo', 
+        array('name'=>'designinfo', 
               'type'=>'string', 
               'column_type'=>'varchar(500)',
-              'label'=>'Option info', 
-              'help'=>'Sets additional information for the option', 
+              'label'=>'Design info', 
+              'help'=>'Sets additional info to display on the design canvas', 
               'support'=>'', 
               'data'=>''
               ),        
@@ -111,7 +111,16 @@ private $dbeConfOptionFilelds = array(
               'data'=>'',
               'customtype'=>'media'
               ),
-         array('name'=>'subgroupid', 
+        array('name'=>'designmediaid', 
+              'type'=>'integer', 
+              'column_type'=>'int(11)',
+              'label'=>'Design media', 
+              'help'=>'', 
+              'support'=>'', 
+              'data'=>'',
+              'customtype'=>'media'
+              ),
+        array('name'=>'subgroupid', 
               'type'=>'integer', 
               'column_type'=>'int(11)',
               'label'=>'Subgroup ID', 
@@ -703,6 +712,12 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                         $controller = $this;
                         $media_data = $controller->getMediaInfoById($mediaid);
                         $params["sConfigurator"][$cnt]["values"][$id]["media_data"] = $media_data;
+                      }
+                      $mediaid = $vdata[0]["cf_designmediaid"];
+                      if (($mediaid) && (!empty($mediaid))) {
+                        $controller = $this;
+                        $media_data = $controller->getMediaInfoById($mediaid);
+                        $params["sConfigurator"][$cnt]["values"][$id]["design_media_data"] = $media_data;
                       }
                     }
                   }

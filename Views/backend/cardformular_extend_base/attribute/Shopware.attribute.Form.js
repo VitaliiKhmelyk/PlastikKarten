@@ -4,14 +4,15 @@
 Ext.define('Shopware.CardformularExtendBase.attribute.Form', {
     extend: 'Shopware.attribute.Form',
 
-    loadMediaAttribute: function(foreignKey, foreignField, target_obj) {
+    loadMediaAttribute: function(foreignKey, foreignField, target_obj, field_mode) {
         var me = this;
         me.load({
             url: '{url controller=CustomAttributeData action=loadMediaData}',
             params: {
                 _foreignKey: foreignKey,
                 _foreignField: foreignField,
-                _table: me.table
+                _table: me.table,
+                _fieldMode: field_mode
             },
             success: function(response, opts) {               
               if ( (opts) && (opts.result) && (opts.result["data"]) && (opts.result["data"]!='') ) {
@@ -26,7 +27,7 @@ Ext.define('Shopware.CardformularExtendBase.attribute.Form', {
         });
     },
 
-    saveMediaAttribute: function(foreignKey,  foreignField, id) {
+    saveMediaAttribute: function(foreignKey,  foreignField, id, field_mode) {
         var me = this;
         me.submit({
             url: '{url controller=CustomAttributeData action=saveMediaData}',
@@ -34,7 +35,8 @@ Ext.define('Shopware.CardformularExtendBase.attribute.Form', {
                 _table: me.table,
                 _foreignKey: foreignKey,
                 _foreignField: foreignField,
-                _mediaId: id
+                _mediaId: id,
+                _fieldMode: field_mode
             },
             success: function(response, opts) {                
             },

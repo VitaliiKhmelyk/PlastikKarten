@@ -10,7 +10,7 @@ Ext.define('Shopware.apps.CardformularExtendArticle.view.variant.configurator.Op
     override: 'Shopware.apps.Article.view.variant.configurator.OptionEdit',
 
     width:600,
-    height:500,
+    height:640,
 
     /**
      * Overrides the createItems function of the overridden ExtJs object
@@ -25,6 +25,10 @@ Ext.define('Shopware.apps.CardformularExtendArticle.view.variant.configurator.Op
             name: 'cfMediaid',
             fieldLabel: '{s name="OptionsMedia" namespace="CardFormular"}Media source{/s}'
         }));
+        result[0].add(me.designMediaIdField = Ext.create('Shopware.form.field.Media', {
+            name: 'cfDesignmediaid',
+            fieldLabel: '{s name="OptionsDesignMedia" namespace="CardFormular"}Design media{/s}'
+        }));
 
         me.attributeForm = Ext.create('Shopware.CardformularExtendBase.attribute.Form', {
             table: 's_article_configurator_options_attributes',
@@ -35,7 +39,8 @@ Ext.define('Shopware.apps.CardformularExtendArticle.view.variant.configurator.Op
         me.attributeForm.on('config-loaded', function() {
            if (me.record) { 
               me.attributeForm.loadAttribute(me.record.get('id')); 
-              me.attributeForm.loadMediaAttribute(me.record.get('id'), 'optionID', me.mediaIdField); 
+              me.attributeForm.loadMediaAttribute(me.record.get('id'), 'optionID', me.mediaIdField, 'cf_mediaid'); 
+              me.attributeForm.loadMediaAttribute(me.record.get('id'), 'optionID', me.designMediaIdField, 'cf_designmediaid'); 
            }
         }, me.attributeForm, { single: true });
 

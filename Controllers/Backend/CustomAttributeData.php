@@ -10,10 +10,11 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
     public function loadMediaDataAction()
     {
         try {
+            $mode = $this->Request()->getParam('_fieldMode');             
             $tablename = $this->Request()->getParam('_table');
             $optionid = $this->Request()->getParam('_foreignKey');
             $fieldname = $this->Request()->getParam('_foreignField');           	
-			$sql = "SELECT cf_mediaid FROM ".$tablename." WHERE ".$fieldname." = ".$optionid;
+			$sql = "SELECT ".$mode." FROM ".$tablename." WHERE ".$fieldname." = ".$optionid;
             $id = Shopware()->Db()->fetchOne($sql);
             if ($id) {
             	die(json_encode(array('success' => true, 'data' => $id)));
@@ -28,6 +29,7 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
     public function saveMediaDataAction()
     {
        try {
+            $mode = $this->Request()->getParam('_fieldMode'); 
             $tablename = $this->Request()->getParam('_table');
             $optionid = $this->Request()->getParam('_foreignKey');
             $fieldname = $this->Request()->getParam('_foreignField');
@@ -37,14 +39,14 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
             $id = Shopware()->Db()->fetchOne($sql);
             if ($id) {
             	if ($media_empty) {
-					$sql = "UPDATE ".$tablename." SET cf_mediaid = null WHERE id = ".$id;
+					$sql = "UPDATE ".$tablename." SET ".$mode." = null WHERE id = ".$id;
             	} else {
-            		$sql = "UPDATE ".$tablename." SET cf_mediaid = ".$mediaid." WHERE id = ".$id;
+            		$sql = "UPDATE ".$tablename." SET ".$mode." = ".$mediaid." WHERE id = ".$id;
             	}
             	Shopware()->Db()->query($sql);
             } else {
             	if (!$media_empty) {
-            		$sql = "INSERT INTO ".$tablename." (".$fieldname.", cf_mediaid)  VALUES (".$optionid.", ".$mediaid.")";
+            		$sql = "INSERT INTO ".$tablename." (".$fieldname.", ".$mode.")  VALUES (".$optionid.", ".$mediaid.")";
             		Shopware()->Db()->query($sql);
             	}
             }
@@ -92,13 +94,14 @@ class Shopware_Controllers_Backend_CustomAttributeData extends Enlight_Controlle
 
     public function getGroupsPseudoStatusAction()
     {
+       $rnd = $this->Request()->getParam('rnd');
        $result = [];     
        $sql = 'SELECT groupID FROM s_article_configurator_groups_attributes WHERE (cf_pseudo=1) OR ((cf_grouptype!="") AND (cf_grouptype!="SelectBox") AND (cf_grouptype!="RadioBox"))';
        $ids = Shopware()->Db()->fetchAll($sql);
        for($i = 0; $i < count($ids); $i++) {
          $result[] = $ids[$i]['groupID'];   
        } 
-       die(json_encode(array('success' => true, 'data' => $result)));
+       die(json_encode(array('success' => true, 'data' => $result, 'rnd' => $rnd)));
     }
 
 

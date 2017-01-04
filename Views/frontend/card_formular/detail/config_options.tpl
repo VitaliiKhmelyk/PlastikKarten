@@ -81,6 +81,7 @@
 
 
 	{$group_enabled = true}
+	{$group_design_passed = false}
 	{$disabledGroupsScriptData = array()}
 	{$typeGroupsScriptData = array()}
 	{foreach from=$sArticle.sConfigurator item=sConfigurator name=group key=groupID}
@@ -182,9 +183,14 @@
 			   {block name='frontend_detail_group_textarea'}
 				{include file="frontend/card_formular/detail/groups/textarea.tpl"}	
 			   {/block}   
-			{else} {if ($group_type=="FrontBackSide")}
-			   {block name='frontend_detail_group_sidebox'}
-				{include file="frontend/card_formular/detail/groups/sidebox.tpl"}	
+			{else} {if ($group_type=="DesignCanvas")}
+			   {block name='frontend_detail_group_design'}
+			    {if $group_design_passed} 
+				     <div>{s name="DetailConfigValueNotAvailable"}Not available{/s}</div>
+				{else} 
+					{$group_design_passed=true}
+					{include file="frontend/card_formular/detail/groups/designcanvas.tpl"}	
+				{/if}
 			   {/block}
 			{else} {if ($group_type=="Container")}
 			   {block name='frontend_detail_group_container'}

@@ -4,6 +4,7 @@
 {$is_horizontal=false}
 {$is_media_presents=false}
 {$is_markup=false}
+{$cnt=0}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
   {if isset($option.media_data.src.original)}
     {if ($option.media_data.src.original!="")}
@@ -16,7 +17,9 @@
 		  {$is_markup=true}
 		{/if}
   {/if}
+  {$cnt=$cnt+1}
 {/foreach}
+{$tdw=100/$cnt|ceil-1}
 
 {$groupnameprefix=""}
 {if ($sConfigurator["pseudo"])}
@@ -30,7 +33,7 @@
 
 <tr>
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
-		<td class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio td-color-cf' {if !$option.selectable}style="display:none"{/if}>
+		<td style="width:{$tdw}%;" class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio td-color-cf' {if !$option.selectable}style="display:none"{/if}>
 		  	<div class="variant--option is--image">
 		  		{block name='frontend_detail_configurator_variant_group_option_label_image'}
 					<span class="image--element">
