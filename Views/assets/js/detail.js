@@ -1,3 +1,37 @@
+/**
+ * aGroupsDataArray indexes:
+ * 0 = group id
+ * 1 = group value
+ * 2 = options array
+ * 3 = true if pseudo group
+ * 4 = true if disabled group
+ * 5 = group type (string)
+ * 6 = true if group has single value (selectbox or radiobox)
+ * 7 = parent subgroup id (>0 if current group is subgroup) 
+ * 8 = current visible and enabled status (actual for pseudo groups)
+ *
+ * options indexes:
+ * 0 = option id
+ * 1 = option value
+ * 2 = subgroup id (>0 if contains subgroup)
+*/
+
+const GRP_IDX = 0;
+const GRP_VALUE = 1;
+const GRP_OPTIONS = 2;
+const GRP_PSEUDO = 3;
+const GRP_DISABLED = 4;
+const GRP_TYPE = 5;
+const GRP_SINGLE_VAL = 6;
+const GRP_SUBID = 7;
+const GRP_VISIBLE = 8;
+
+const OPT_IDX = 0;
+const OPT_VALUE = 1;
+const OPT_SUBID = 2;
+const OPT_DESIGN_ORIG = 3;
+const OPT_DESIGN_DATA = 4;
+
 function setQtyTextInputVal(is_forced) {    
     var obj = document.getElementById("qty");
     if (obj) {
@@ -99,8 +133,8 @@ function checkWorkflowStage() {
       for (var j = 0; j < aWorkflowDataArray[i].length; j++) {
         if (stage_empty) {
           for (var k = 0; k < aGroupsDataArray.length; k++) {
-             if (aGroupsDataArray[k][0]==aWorkflowDataArray[i][j]) {
-               stage_empty = (aGroupsDataArray[k][4])&&(!(aGroupsDataArray[k][3])); 
+             if (aGroupsDataArray[k][GRP_IDX]==aWorkflowDataArray[i][j]) {
+               stage_empty = (aGroupsDataArray[k][GRP_DISABLED])&&(!(aGroupsDataArray[k][GRP_PSEUDO])); 
                break; 
              }
           }
@@ -130,66 +164,143 @@ function checkWorkflowStage() {
   }
 }  
 
+function hideUnusedPseudoSubgroupValues(subgroup_id) {
+  var i, j, optns;
+  for (i = 0; i < aGroupsDataArray.length; i++) {
+    if ((aGroupsDataArray[i][GRP_SUBID]==subgroup_id)&&(aGroupsDataArray[i][GRP_PSEUDO])) {
+       aGroupsUnusedArray.push(aGroupsDataArray[i][GRP_IDX]);
+       optns = aGroupsDataArray[i][GRP_OPTIONS];
+       for (j = 0; j < optns.length; j++) { 
+         if (optns[j][OPT_SUBID]>0) {
+           hideUnusedPseudoSubgroupValues(optns[j][OPT_SUBID]);
+         }  
+       }        
+    } 
+  }  
+}  
+
+function hideUnusedPseudoValues() {
+  var i, j, optns, data, srcObj, isOn; 
+  aGroupsUnusedArray = [];
+  for (i = 0; i < aGroupsDataArray.length; i++) {
+   if ((aGroupsDataArray[i][GRP_SINGLE_VAL])||(aGroupsDataArray[i][GRP_DISABLED])) { //radio or select or disabled
+     optns = aGroupsDataArray[i][GRP_OPTIONS];
+     for (j = 0; j < optns.length; j++) {
+       if (((aGroupsDataArray[i][GRP_DISABLED])||((aGroupsDataArray[i][GRP_VALUE]+'')!=(optns[j][OPT_IDX]+''))) && (optns[j][OPT_SUBID]>0)) {
+         hideUnusedPseudoSubgroupValues(optns[j][OPT_SUBID]);
+       }
+     } 
+   }
+  }
+  for (i = 0; i < aGroupsDataArray.length; i++) {  
+    isOn = 1;
+    for (j = 0; j < aGroupsUnusedArray.length; j++) {
+       if (aGroupsDataArray[i][GRP_IDX]==aGroupsUnusedArray[j]) {
+         isOn = 0;
+         break; 
+       }
+    }
+    aGroupsDataArray[i][GRP_VISIBLE]=(isOn==1);
+    srcObj = document.getElementById('pseudo-' +aGroupsUnusedArray[j]);
+    if (srcObj) {
+      data = JSON.parse(srcObj.value);
+      if (data.length>2) {
+        data[2] = isOn;
+        srcObj.value=JSON.stringify(data); 
+      }
+    } 
+  }  
+}
+
+function drawDesignSurface() {
+  var i, id = -1;
+  for (i = 0; i < aGroupsDataArray.length; i++) {
+    if (aGroupsDataArray[i][GRP_TYPE]=="DesignCanvas") {
+      id = i;
+      break;
+    }
+  }  
+  if (id < 0) { return; }
+}
+
 function saveCustomParamsStatus(group_id, option_id) {
   var i, j, optns, grp_id, opt_id, srcObj, srcObjParent, newval, arrayGrps,  arrayOpt, arrayOpts;
   var prefix='custom';
+  var need_check_pseudo=false;
   for (i = 0; i < aGroupsDataArray.length; i++) {
-    grp_id = aGroupsDataArray[i][0];
+    grp_id = aGroupsDataArray[i][GRP_IDX];
     if (((group_id) && (group_id == grp_id)) || (!group_id)) {
+      need_check_pseudo = (need_check_pseudo || aGroupsDataArray[i][GRP_SINGLE_VAL]);
       srcObjParent = document.getElementById(prefix + 'group['+ grp_id + ']'); 
       if (!srcObjParent) {
         srcObjParent = document.getElementById('group['+ grp_id + ']'); 
       }  
       if (srcObjParent) {
-        aGroupsDataArray[i][1]=srcObjParent.value;
+        aGroupsDataArray[i][GRP_VALUE]=srcObjParent.value;
       } else {
-        aGroupsDataArray[i][1]="";        
+        aGroupsDataArray[i][GRP_VALUE]="";        
       }
       arrayOpts = new Array(); 
-      optns = aGroupsDataArray[i][2];
+      optns = aGroupsDataArray[i][GRP_OPTIONS];
       for (j = 0; j < optns.length; j++) {        
-        opt_id = optns[j][0];        
+        opt_id = optns[j][OPT_IDX];        
         if (((option_id) && (option_id == opt_id)) || (!option_id)) {
           srcObj = document.getElementById(prefix + 'group['+ grp_id + ']['+opt_id+']');       
           if (!srcObj) {
             srcObj = document.getElementById('group['+ grp_id + ']['+opt_id+']');    
           }
           if (srcObj) {
-            aGroupsDataArray[i][2][j][1]=srcObj.value;
+            aGroupsDataArray[i][GRP_OPTIONS][j][OPT_VALUE]=srcObj.value;
             newval = srcObj.value;
             if ((srcObj.getAttribute("type") == "radio") && !(srcObj.checked)) {
               newval = "";
             }
             if ((newval!="") && (aGroupsDataArray[i][1]==""))  {
-              aGroupsDataArray[i][1] = srcObj.value;
+              aGroupsDataArray[i][GRP_VALUE] = srcObj.value;
             }
           } 
         }
         arrayOpt = new Array(); 
         arrayOpt.push(opt_id);
-        arrayOpt.push(aGroupsDataArray[i][2][j][1]);
+        arrayOpt.push(aGroupsDataArray[i][GRP_OPTIONS][j][OPT_VALUE]);
         arrayOpts.push(arrayOpt);    
       }
       srcObj = document.getElementById('pseudo-' + grp_id);
       if (srcObj) {
         arrayGrps = new Array();
-        arrayGrps.push(aGroupsDataArray[i][5]);
-        if (aGroupsDataArray[i][4]) {
-          arrayGrps.push("");
-        } else {  
-          if (aGroupsDataArray[i][6]) {
-            arrayGrps.push(aGroupsDataArray[i][1]);
-          } else {
+        arrayGrps.push(aGroupsDataArray[i][GRP_TYPE]);
+        if (aGroupsDataArray[i][GRP_SINGLE_VAL]) {
+            arrayGrps.push(aGroupsDataArray[i][GRP_VALUE]);
+        } else {
             arrayGrps.push(arrayOpts);
-          }
         }
+        arrayGrps.push(1);
         srcObj.value =JSON.stringify(arrayGrps);
         //console.log(srcObj.value);
       }  
     }    
-  }  
+  }
+  if (need_check_pseudo) {
+    hideUnusedPseudoValues();
+  }
+  drawDesignSurface();
   //console.log(aGroupsDataArray);
 }
+
+function setDefaultDesignParams() {
+  var i, j, optns, obj, data;
+  for (i = 0; i < aGroupsDataArray.length; i++) {
+    optns = aGroupsDataArray[i][GRP_OPTIONS];
+    for (j = 0; j < optns.length; j++) { 
+      data=[];
+      if (optns[j][OPT_DESIGN_ORIG]!='') {
+        obj=JSON.parse(optns[j][OPT_DESIGN_ORIG]);
+        //console.log(obj);
+      }
+      optns[j][OPT_DESIGN_DATA]=JSON.stringify(data);
+    }     
+  }  
+} 
 
 function setSubgroupParentObj(id) {
    var srcObj = document.getElementsByClassName("child_subgroup_"+id+"_container");
@@ -219,6 +330,14 @@ function setLoadingMode() {
   $('.cf_ajax_container_price_value').html($('.cf_ajax_container_loading').html());  
   $('.price--discount-icon').hide();  
   $('.entry--content').html("");
+}
+
+function setObjSisplayStyle(ident, off_condition) {
+  var s;
+  $(ident).each( function() {
+  if (off_condition) {s='none';} else {s='';}
+     this.style.display = s;
+  });
 }
 
 function replaceActiveContent(response) {  
@@ -252,7 +371,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
   for (var i = 0; i < aGroupsDataArray.length; i++) {
     cnt=0;
     //combobox
-    prefix = '.cf_ajax_container_group_'+aGroupsDataArray[i][0];
+    prefix = '.cf_ajax_container_group_'+aGroupsDataArray[i][GRP_IDX];
     container = response.find(prefix+'.cf_ajax_type_selectbox');   
     if (container.length > 0) { 
        container2 = $(prefix+'.cf_ajax_type_selectbox');
@@ -267,27 +386,19 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
            data_arr[j][0]=parseInt(data_arr[j][0]);
            if ((j > 0) && (data_arr[j][0] > 0) && (data_arr[j][1]!='0')) { cnt += 1;} ;
         }  
-        aGroupsDataArray[i][4]=(data_arr[0][0]!=0);      
-        container = $(prefix+'_na');
-        container.each( function() {
-          if (cnt > 0) { s = 'none'; } else { s = ''; }
-            this.style.display = s;
-        });
-        optns = aGroupsDataArray[i][2];
+        aGroupsDataArray[i][GRP_DISABLED]=(data_arr[0][0]!=0);      
+        setObjSisplayStyle(prefix+'_na',(cnt > 0));
+        optns = aGroupsDataArray[i][GRP_OPTIONS];
         for (var j = 0; j < optns.length; j++) {
            data=[];
            for (var k = 1; k < data_arr.length; k++) {
-              if (data_arr[k][0]==optns[j][0]) {
+              if (data_arr[k][0]==optns[j][OPT_IDX]) {
                 data=data_arr[k];
                 break;
               }
            }
            if (data.length > 0 ) {  
-               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_selectbox_sub');
-               container.each( function() {
-                      if ((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')) { s = 'none'; } else { s = ''; }
-                      this.style.display = s;            
-               });
+              setObjSisplayStyle(prefix+'_'+optns[j][OPT_IDX]+'.cf_ajax_type_selectbox_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
            } 
         }
       }
@@ -301,7 +412,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
            data_arr[j][0]=parseInt(data_arr[j][0]);
            if ((j > 0) && (data_arr[j][0] > 0) && (data_arr[j][1]!='0')) { cnt += 1;} ;
          } 
-         aGroupsDataArray[i][4]=(data_arr[0][0]!=0); 
+         aGroupsDataArray[i][GRP_DISABLED]=(data_arr[0][0]!=0); 
          container = $(prefix);
          if (container.length > 0 ) {                  
             s='disabled_object';
@@ -311,41 +422,25 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
               container.addClass(s);  
             }
          }
-         container = $(prefix+'_na');
-         container.each( function() {
-         if (cnt > 0) { s = 'none'; } else { s = ''; }
-            this.style.display = s;
-         });
-         optns = aGroupsDataArray[i][2];
+         setObjSisplayStyle(prefix+'_na',(cnt > 0));
+         optns = aGroupsDataArray[i][GRP_OPTIONS];
          for (var j = 0; j < optns.length; j++) {
-            container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_markup');
-            container.each( function() {
-                if (data_arr[0][1]=='0') { s = 'none'; } else { s = ''; }
-                    this.style.display = s;
-            });
+            s=prefix+'_'+optns[j][OPT_IDX];
+            setObjSisplayStyle(s+'.cf_ajax_type_radio_markup',(data_arr[0][1]=='0'));
             data=[];
             for (var k = 1; k < data_arr.length; k++) {
-              if (data_arr[k][0]==optns[j][0]) {
+              if (data_arr[k][0]==optns[j][OPT_IDX]) {
                 data=data_arr[k];
                 break;
               }
             } 
             if (data.length > 0 ) {               
-               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio');
-               container.each( function() {
-                    if (data[1]=='0') { s = 'none'; } else { s = ''; }
-                    this.style.display = s;
-               });
-               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_sub');
-               container.each( function() {
-                    if ((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')) { s = 'none'; } else { s = ''; }
-                    this.style.display = s;                   
-               });
-               container = $(prefix+'_'+optns[j][0]+'.cf_ajax_type_radio_btn');
-               container.each( function() {
+               setObjSisplayStyle(s+'.cf_ajax_type_radio',(data[1]=='0'));
+               setObjSisplayStyle(s+'.cf_ajax_type_radio_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
+               $(s+'.cf_ajax_type_radio_btn').each( function() {
                    this.checked = ((data[1]=='1') && (data[2]=='1'));
                });
-               container = $(prefix+'_'+optns[j][0]+'.cf_data_markup');
+               container = $(s+'.cf_data_markup');
                if (container.length > 0 ) {                  
                  container.html(data[3]);
                }
@@ -359,6 +454,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
 if (isCardFormular) {
 
 //console.log('card formular detected!'); 
+setDefaultDesignParams();
 executeSetSubgroupParentObj();
 saveCustomParamsStatus();
 checkWorkflowStage();

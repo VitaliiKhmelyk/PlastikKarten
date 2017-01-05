@@ -151,6 +151,9 @@
 				{else}
 				   {if $group_type!="Container"} 
 				  	 <p class="configurator--label">{$sConfigurator.groupname}:</p>
+				   {/if}
+				   {if $sConfigurator.groupdescription} 
+				  	 <p>{$sConfigurator.groupdescription}</p>
 				   {/if}	
 				{/if}
 			{/block}
@@ -231,7 +234,7 @@
          	  {$group_type_single_val=($group_type=="RadioBox")||($group_type=="SelectBox")}
          	  {$is_disabled=$disabledGroupsScriptData[$cnt]}
          	  {$is_pseudo=$sConfigurator['pseudo']}
-         	  {if $cnt>0},{/if}[{$sConfigurator.groupID},'',[{$cnt2=0}{foreach from=$sConfigurator.values item=option}{if $cnt2>0},{/if}[{$option.optionID},'']{$cnt2=$cnt2+1}{/foreach}],{if $is_pseudo}true{else}false{/if},{if $is_disabled}true{else}false{/if},'{$group_type}',{if $group_type_single_val}true{else}false{/if}] 
+         	  {if $cnt>0},{/if}[{$sConfigurator.groupID},'',[{$cnt2=0}{foreach from=$sConfigurator.values item=option}{if $cnt2>0},{/if}[{$option.optionID},'',{if $option["option_attributes"]["cf_subgroupid"]}{$option["option_attributes"]["cf_subgroupid"]}{else}0{/if},{if $option["design_data_json"]}'{$option["design_data_json"]}'{else}''{/if},'']{$cnt2=$cnt2+1}{/foreach}],{if $is_pseudo}true{else}false{/if},{if $is_disabled}true{else}false{/if},'{$group_type}',{if $group_type_single_val}true{else}false{/if},{if $sConfigurator["group_attributes"]["cf_subgroupid"]}{$sConfigurator["group_attributes"]["cf_subgroupid"]}{else}0{/if},true] 
          	  {$cnt=$cnt+1}		
          	{/foreach}	       	    
        	];
@@ -243,6 +246,7 @@
          	{/foreach}	       	    
        	];
        	var isCardFormular = {if $sArticle.isCF}true{else}false{/if};
+       	var aGroupsUnusedArray = [];
 	</script>
 	{/block}
 

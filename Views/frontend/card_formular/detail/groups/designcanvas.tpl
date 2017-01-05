@@ -22,7 +22,7 @@
  	{block name='frontend_detail_configurator_variant_group_option_label'}
 	<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
 		{block name='frontend_detail_configurator_variant_group_option_label_text'}
-			{$option.optionname}:
+			{$option.optionname}
 		{/block}
 	</label>
 	{/block}	
@@ -35,10 +35,10 @@
    <div class="variant--option is--image">
  		{block name='frontend_detail_configurator_variant_group_option_canvas'}
 		  <span class="image--element image--media">
-		     {$media = $option.media_data.src.original}
-		     {$w = $option.media_data.res.original.width}
-		     {$h = $option.media_data.res.original.height}
-			 {if isset($media)}
+		     {$media = $option.media_data.src.original}		     
+			 {if isset($media)  && isset($option.media_data.res.original.width)}
+			    {$w = $option.media_data.res.original.width}
+		        {$h = $option.media_data.res.original.height}
 				<img style="width:{$w}px;height:{$h}px;" src="{$media}" alt="{$option.optionname}" />
 			 {else} 
 			    <img src="{link file='frontend/_public/src/img/no-picture.jpg'}" alt="{$option.optionname}">

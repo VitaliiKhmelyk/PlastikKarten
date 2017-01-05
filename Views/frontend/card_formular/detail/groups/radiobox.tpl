@@ -6,7 +6,7 @@
 {$is_markup=false}
 {$cnt=0}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
-  {if isset($option.media_data.src.original)}
+  {if isset($option.media_data.src.original) && isset($option.media_data.res.original.width)}
     {if ($option.media_data.src.original!="")}
       {$is_horizontal=true}
       {$is_media_presents=true}
@@ -39,7 +39,7 @@
 					<span class="image--element">
 						<span class="image--media">
 							{$media = $option.media_data.src.original}
-							{if isset($media)}
+							{if isset($media) && isset($option.media_data.res.original.width)}
 								<img class="img_option_cf" src="{$media}" alt="{$option.optionname}" />
 							{else}
 								<img src="{link file='frontend/_public/src/img/no-picture.jpg'}" alt="{$option.optionname}">
@@ -132,7 +132,7 @@
 		<span class="image--element">
 			<span class="image--media">
 				{$media = $option.media_data.src.original}
-				{if isset($media)}
+				{if isset($media)  && isset($option.media_data.res.original.width)}
 					<img class="img_option_cf" src="{$media}" alt="{$option.optionname}" />
 				{else}
 					<img src="{link file='frontend/_public/src/img/no-picture.jpg'}" alt="{$option.optionname}">

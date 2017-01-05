@@ -114,7 +114,7 @@ private $dbeConfOptionFilelds = array(
         array('name'=>'designmediaid', 
               'type'=>'integer', 
               'column_type'=>'int(11)',
-              'label'=>'Design media', 
+              'label'=>'Design image', 
               'help'=>'', 
               'support'=>'', 
               'data'=>'',
@@ -660,6 +660,7 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
         foreach ($all_groups as $grp) {                      
            if ($grp["groupID"]) {
               $all_values=$grp["values"];
+              $gtype="";
               //if pseudo group
               if ($this->isPseudoGroup($grp["groupID"]))  {
                  $params["sConfigurator"][$cnt]["pseudo"] = true;
@@ -671,7 +672,7 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                       }
                    }
                  }
-              } 
+              }               
               //if group with single option
               if (
                  ($params["sConfiguratorSettings"]["type"] == 0) 
@@ -688,7 +689,8 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                 if ($params["sConfigurator"][$cnt]["hidden"]) {
                   $data[0]["cf_workflowlabel"]="";
                 }
-                $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];              
+                $params["sConfigurator"][$cnt]["group_attributes"]=$data[0];  
+                $gtype=$data[0]["cf_grouptype"];            
                 $cur_workflow=$data[0]["cf_workflowlabel"];
                 $cur_subgroupid=$data[0]["cf_subgroupid"];
                 if ((!isset($cur_subgroupid)) || (empty($cur_subgroupid)) || ($cur_subgroupid==0)) {
@@ -707,18 +709,23 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                     $vdata = Shopware()->Db()->fetchAll("SELECT * FROM s_article_configurator_options_attributes WHERE optionID = ?", [$id]);
                     if (count($vdata) > 0) {
                       $params["sConfigurator"][$cnt]["values"][$id]["option_attributes"]=$vdata[0];
+                      $controller = $this;
+                      $media_data=NULL;
                       $mediaid = $vdata[0]["cf_mediaid"];
                       if (($mediaid) && (!empty($mediaid))) {
-                        $controller = $this;
                         $media_data = $controller->getMediaInfoById($mediaid);
                         $params["sConfigurator"][$cnt]["values"][$id]["media_data"] = $media_data;
-                      }
+                      }                     
+                      $media_data_design=NULL;
                       $mediaid = $vdata[0]["cf_designmediaid"];
-                      if (($mediaid) && (!empty($mediaid))) {
-                        $controller = $this;
-                        $media_data = $controller->getMediaInfoById($mediaid);
-                        $params["sConfigurator"][$cnt]["values"][$id]["design_media_data"] = $media_data;
+                      if (($mediaid) && (!empty($mediaid))) {                        
+                        $media_data_design = $controller->getMediaInfoById($mediaid);
+                        $params["sConfigurator"][$cnt]["values"][$id]["design_media_data"] = $media_data_design;
                       }
+                      if ($gtype=="DesignCanvas") {
+                        $media_data_design=$media_data;
+                      }
+                      $params["sConfigurator"][$cnt]["values"][$id]["design_data_json"] = $controller->getDesignInfo($media_data_design, $vdata[0]["cf_designinfo"]);
                     }
                   }
                 }  
@@ -1046,6 +1053,24 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
     }
 }
 
+ public function getDesignInfo($mediadata, $info)
+    {
+      $res = [];
+      if ($info) {
+        $res = json_decode('{'.$info.'}', true);
+      }
+      if (($mediadata)&&($mediadata["res"]["original"]["width"])) {
+        $res['image_src'] = $mediadata['src']['original']; 
+        $res['image_width'] = $mediadata["res"]["original"]["width"]; 
+        $res['image_height'] = $mediadata["res"]["original"]["height"]; 
+      }
+      if (count($res)==0) {
+        return; 
+      } else {
+        return json_encode($res);
+      }  
+    }
+      
  public function getMediaInfoById($id)
     {
         $image = array();
