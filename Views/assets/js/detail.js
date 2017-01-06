@@ -223,6 +223,22 @@ function drawDesignSurface() {
   if (id < 0) { return; }
 }
 
+function setSubgroupState(idx) {
+  var j, b, prefix,
+  group_val = parseInt(aGroupsDataArray[idx][GRP_VALUE]), 
+  optns = aGroupsDataArray[idx][GRP_OPTIONS];  
+  for (j = 0; j < optns.length; j++) {   
+    b = (optns[j][OPT_IDX]!=group_val);
+    prefix = '.cf_ajax_container_group_'+aGroupsDataArray[idx][GRP_IDX]+'_'+optns[j][OPT_IDX];
+    if (aGroupsDataArray[idx][GRP_TYPE]=="SelectBox") {
+      setObjDisplayStyle(prefix+'.cf_ajax_type_selectbox_sub',b);
+    } 
+    if (aGroupsDataArray[idx][GRP_TYPE]=="RadioBox") {  
+      setObjDisplayStyle(prefix+'.cf_ajax_type_radio_sub',b);
+    }  
+  }
+}  
+
 function saveCustomParamsStatus(group_id, option_id) {
   var i, j, optns, grp_id, opt_id, srcObj, srcObjParent, newval, arrayGrps,  arrayOpt, arrayOpts;
   var prefix='custom';
@@ -277,6 +293,9 @@ function saveCustomParamsStatus(group_id, option_id) {
         arrayGrps.push(1);
         srcObj.value =JSON.stringify(arrayGrps);
         //console.log(srcObj.value);
+      }
+      if (group_id) {
+        setSubgroupState(i);
       }  
     }    
   }
@@ -332,7 +351,7 @@ function setLoadingMode() {
   $('.entry--content').html("");
 }
 
-function setObjSisplayStyle(ident, off_condition) {
+function setObjDisplayStyle(ident, off_condition) {
   var s;
   $(ident).each( function() {
   if (off_condition) {s='none';} else {s='';}
@@ -387,7 +406,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
            if ((j > 0) && (data_arr[j][0] > 0) && (data_arr[j][1]!='0')) { cnt += 1;} ;
         }  
         aGroupsDataArray[i][GRP_DISABLED]=(data_arr[0][0]!=0);      
-        setObjSisplayStyle(prefix+'_na',(cnt > 0));
+        setObjDisplayStyle(prefix+'_na',(cnt > 0));
         optns = aGroupsDataArray[i][GRP_OPTIONS];
         for (var j = 0; j < optns.length; j++) {
            data=[];
@@ -398,7 +417,7 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
               }
            }
            if (data.length > 0 ) {  
-              setObjSisplayStyle(prefix+'_'+optns[j][OPT_IDX]+'.cf_ajax_type_selectbox_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
+              setObjDisplayStyle(prefix+'_'+optns[j][OPT_IDX]+'.cf_ajax_type_selectbox_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
            } 
         }
       }
@@ -422,11 +441,11 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
               container.addClass(s);  
             }
          }
-         setObjSisplayStyle(prefix+'_na',(cnt > 0));
+         setObjDisplayStyle(prefix+'_na',(cnt > 0));
          optns = aGroupsDataArray[i][GRP_OPTIONS];
          for (var j = 0; j < optns.length; j++) {
             s=prefix+'_'+optns[j][OPT_IDX];
-            setObjSisplayStyle(s+'.cf_ajax_type_radio_markup',(data_arr[0][1]=='0'));
+            setObjDisplayStyle(s+'.cf_ajax_type_radio_markup',(data_arr[0][1]=='0'));
             data=[];
             for (var k = 1; k < data_arr.length; k++) {
               if (data_arr[k][0]==optns[j][OPT_IDX]) {
@@ -435,8 +454,8 @@ var container, container2, optns, data, data_arr, s, prefix, cnt,
               }
             } 
             if (data.length > 0 ) {               
-               setObjSisplayStyle(s+'.cf_ajax_type_radio',(data[1]=='0'));
-               setObjSisplayStyle(s+'.cf_ajax_type_radio_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
+               setObjDisplayStyle(s+'.cf_ajax_type_radio',(data[1]=='0'));
+               setObjDisplayStyle(s+'.cf_ajax_type_radio_sub',((data[1]=='0') || (data_arr[0][0]==1) || (data[2]=='0')));
                $(s+'.cf_ajax_type_radio_btn').each( function() {
                    this.checked = ((data[1]=='1') && (data[2]=='1'));
                });

@@ -725,7 +725,9 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
                       if ($gtype=="DesignCanvas") {
                         $media_data_design=$media_data;
                       }
-                      $params["sConfigurator"][$cnt]["values"][$id]["design_data_json"] = $controller->getDesignInfo($media_data_design, $vdata[0]["cf_designinfo"]);
+                      $params["sConfigurator"][$cnt]["values"][$id]["design_data_json"] = $controller->getDesignInfo($media_data_design, $vdata[0]["cf_designinfo"], $is_fixed, $design_mode);
+                      $params["sConfigurator"][$cnt]["values"][$id]["design_data_fixed"] = $is_fixed;
+                      $params["sConfigurator"][$cnt]["values"][$id]["design_data_mode"] = $design_mode;
                     }
                   }
                 }  
@@ -1053,8 +1055,10 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
     }
 }
 
- public function getDesignInfo($mediadata, $info)
+ public function getDesignInfo($mediadata, $info, $is_fixed, $design_mode)
     {
+      $is_fixed = false;
+      $design_mode = -1;
       $res = [];
       if ($info) {
         $res = json_decode('{'.$info.'}', true);
@@ -1064,9 +1068,14 @@ public function onFrontendDetailPostDispatch(Enlight_Event_EventArgs $args)
         $res['image_width'] = $mediadata["res"]["original"]["width"]; 
         $res['image_height'] = $mediadata["res"]["original"]["height"]; 
       }
-      if (count($res)==0) {
+      $is_valid=(isset($res['image_src'])||isset($res['text']));
+      if ( (count($res)==0) || (!$is_valid) ) {
         return; 
       } else {
+        $is_fixed=(isset($res['fixed']));
+        if (isset($res['canvas'])) {
+           $design_mode=$res['canvas'];
+        } 
         return json_encode($res);
       }  
     }

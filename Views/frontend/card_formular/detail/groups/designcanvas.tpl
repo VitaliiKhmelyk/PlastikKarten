@@ -2,7 +2,7 @@
 <span class="arrow"></span>
 
 {$groupnameprefix="custom"}
-
+{$colspan=3}
 
 {$cnt=0}
 {foreach from=$sConfigurator.values item=option name=config_option key=optionID}
@@ -17,7 +17,7 @@
 <table>
 {if $cnt>1}
 <tr>
- <td class="td-color-cf" >
+ <td class="td-color-cf" colspan="{$colspan}">
    <div class="variant--option">
  	{block name='frontend_detail_configurator_variant_group_option_label'}
 	<label for="{$groupnameprefix}group[{$option.groupID}][{$option.optionID}]" class="option--label">
@@ -31,7 +31,7 @@
 </tr>
 {/if}
 <tr>
- <td class="td-color-cf" >
+ <td class="td-color-cf" colspan="{$colspan}">
    <div class="variant--option is--image">
  		{block name='frontend_detail_configurator_variant_group_option_canvas'}
 		  <span class="image--element image--media">
@@ -65,13 +65,42 @@
 {/foreach}
 
 </td></tr>
-<tr><td class="td-color-cf">
 
-<div>
+{foreach from=$sArticle.sConfigurator item=sConfiguratorTmp name=groupTmp key=groupIDTmp}
+   {if $sConfiguratorTmp["group_attributes"]}
+	  {if $sConfiguratorTmp["group_attributes"]["cf_grouptype"]}
+	 	  {$group_type_tmp = $sConfiguratorTmp["group_attributes"]["cf_grouptype"]}
+	  {/if}
+   {/if}
+   {if !$group_type_tmp || ($group_type_tmp=="")}
+	  {$group_type_tmp="SelectBox"}
+   {/if}
+   {if ($group_type_tmp!="DesignCanvas") && ($group_type_tmp!="Container") }
+		{$is_single_val=($group_type_tmp=="SelectBox")||($group_type_tmp=="RadioBox")}
+		{foreach from=$sConfiguratorTmp.values item=option name=config_option key=optionID}
+		  {if (!$is_single_val)||($option["design_data_json"])}
+		  	<tr class="cf_design_group_{$sConfiguratorTmp.groupID}_{$option.optionID}">
+		  	<td class="td-color-cf">{$option.optionname}:</td>
+            <td class="td-color-cf cf_design_mode_{$sConfiguratorTmp.groupID}_{$option.optionID}">
 
-</div>
+            </td>
 
-</td></tr>
+            <td class="td-color-cf cf_design_actions_{$sConfiguratorTmp.groupID}_{$option.optionID}">
+			{if !($option["design_data_fixed"])}
+			<a href="javascript:void(0)" title="{s name='ShiftLeft' namespace='CardFormular'}{/s}"><i class="icon--arrow-left3"></i></a>	
+			<a href="javascript:void(0)" title="{s name='ShiftRight' namespace='CardFormular'}{/s}"><i class="icon--arrow-right3"></i></a>
+			<a href="javascript:void(0)" title="{s name='ShiftUp' namespace='CardFormular'}{/s}"><i class="icon--arrow-up2"></i></a>
+			<a href="javascript:void(0)" title="{s name='ShiftDown' namespace='CardFormular'}{/s}"><i class="icon--arrow-down3"></i></a>
+			<a href="javascript:void(0)" title="{s name='ResizeEnlarge' namespace='CardFormular'}{/s}"><i class="icon--resize-enlarge"></i></a>
+			<a href="javascript:void(0)" title="{s name='ResizeShrink' namespace='CardFormular'}{/s}"><i class="icon--resize-shrink"></i></a>
+			{/if}
+            </td>
+		  	</tr>
+		  {/if}	
+       {/foreach}
+   {/if}
+{/foreach}
+
 </table>
 
 </div>
