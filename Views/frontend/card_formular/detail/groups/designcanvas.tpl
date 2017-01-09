@@ -82,17 +82,16 @@
 		  	<tr class="cf_design_group_{$sConfiguratorTmp.groupID}_{$option.optionID}">
 		  	<td class="td-color-cf">{$option.optionname}:</td>
             <td class="td-color-cf cf_design_mode_{$sConfiguratorTmp.groupID}_{$option.optionID}">
-
+            mode
             </td>
-
             <td class="td-color-cf cf_design_actions_{$sConfiguratorTmp.groupID}_{$option.optionID}">
 			{if !($option["design_data_fixed"])}
-			<a href="javascript:void(0)" title="{s name='ShiftLeft' namespace='CardFormular'}{/s}"><i class="icon--arrow-left3"></i></a>	
-			<a href="javascript:void(0)" title="{s name='ShiftRight' namespace='CardFormular'}{/s}"><i class="icon--arrow-right3"></i></a>
-			<a href="javascript:void(0)" title="{s name='ShiftUp' namespace='CardFormular'}{/s}"><i class="icon--arrow-up2"></i></a>
-			<a href="javascript:void(0)" title="{s name='ShiftDown' namespace='CardFormular'}{/s}"><i class="icon--arrow-down3"></i></a>
-			<a href="javascript:void(0)" title="{s name='ResizeEnlarge' namespace='CardFormular'}{/s}"><i class="icon--resize-enlarge"></i></a>
-			<a href="javascript:void(0)" title="{s name='ResizeShrink' namespace='CardFormular'}{/s}"><i class="icon--resize-shrink"></i></a>
+				<a href="javascript:void(0)" title="{s name='ShiftLeft' namespace='CardFormular'}{/s}"><i class="icon--arrow-left3"></i></a>	
+				<a href="javascript:void(0)" title="{s name='ShiftRight' namespace='CardFormular'}{/s}"><i class="icon--arrow-right3"></i></a>
+				<a href="javascript:void(0)" title="{s name='ShiftUp' namespace='CardFormular'}{/s}"><i class="icon--arrow-up2"></i></a>
+				<a href="javascript:void(0)" title="{s name='ShiftDown' namespace='CardFormular'}{/s}"><i class="icon--arrow-down3"></i></a>
+				<a href="javascript:void(0)" title="{s name='ResizeEnlarge' namespace='CardFormular'}{/s}"><i class="icon--resize-enlarge"></i></a>
+				<a href="javascript:void(0)" title="{s name='ResizeShrink' namespace='CardFormular'}{/s}"><i class="icon--resize-shrink"></i></a>
 			{/if}
             </td>
 		  	</tr>

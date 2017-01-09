@@ -16,7 +16,7 @@ public function getInfo()
       'version' => $this->getVersion(),
       'label' => 'Card Formular Configurator',
       'author' => 'webiprog.com',
-      'copyright' => 'Copyright © 2016-2017, WebiProg',
+      'copyright' => 'Copyright © 2017, WebiProg',
       'support' => 'info@webiprog.com',
       'link' => 'http://www.webiprog.com'
     );
@@ -57,7 +57,7 @@ private $dbeConfGroupFilelds = array(
               'label'=>'Group type', 
               'help'=>'Sets type of elements inside option group for frontend', 
               'support'=>'', 
-              'data'=>'[{"key":"SelectBox","value":"Selector"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text input"},{"key":"TextArea","value":"Text area"},{"key":"Upload","value":"Upload"},{"key":"Container","value":"Container"},{"key":"DesignCanvas","value":"Design canvas"}]'
+              'data'=>'[{"key":"SelectBox","value":"SelectBox"},{"key":"RadioBox","value":"Radio buttons"},{"key":"TextFields","value":"Text inputs"},{"key":"TextArea","value":"Text areas"},{"key":"Upload","value":"Uploads"},{"key":"Container","value":"Container"},{"key":"DesignCanvas","value":"Design canvas"}]'
               ),
         array('name'=>'groupinfo', 
               'type'=>'html', 
@@ -131,9 +131,18 @@ private $dbeConfOptionFilelds = array(
     );
 
 private $db_table_version = 1;
-private $full_clear_on_uninstall = true;
 
 private $cf_template_mode = '';
+
+public function getCapabilities()
+{
+    return array(
+        'install' => true,
+        'enable' => true,
+        'update' => true,
+        'secureUninstall' => true
+    );
+}
 
 public function install()
 {
@@ -143,22 +152,32 @@ public function install()
     $this->installConfiguratorAttributes();
     $this->CreateEvents();
     $this->CreateForm();  
-    
     return array('success' => true, 'invalidateCache' => $this->clearCache);
-
   } catch (Exception $exception) {
     $this->uninstall();
     throw new Exception($exception->getMessage());
   }
 }
 
-public function uninstall()
+private function doUninstall()
 {
     $this->unInstallConfiguratorAttributes();
     $this->DropAttributeTables();
     $this->DropArticleTemplates();
     parent::uninstall();
     return true;
+}
+
+public function uninstall()
+{
+   $this->deleteSecureUninstallData(); 
+   return $this->doUninstall();
+}
+
+public function secureUninstall()
+{
+   $this->saveSecureUninstallData();  
+   return $this->doUninstall();
 }
 
 public function afterInit()
@@ -250,10 +269,102 @@ public function installConfiguratorAttributes()
     $metaDataCacheDoctrine = Shopware()->Models()->getConfiguration()->getMetadataCacheImpl();
     $metaDataCacheDoctrine->deleteAll();    
     Shopware()->Models()->generateAttributeModels('s_article_configurator_groups_attributes', 's_article_configurator_options_attributes', 's_order_basket_attributes', 's_order_details_attributes');
+    //
+    $tname = "webiprog_tmp_common";
+    $sqlQuery = 'select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME="'.$tname.'"';
+    if (Shopware()->Db()->fetchAll($sqlQuery)) {
+       $sqlQuery = 'SELECT * FROM '.$tname;
+       $data = Shopware()->Db()->fetchAll($sqlQuery);
+       if (($data) && ($data[0]["dbVersion"]==$this->db_table_version)) {
+          $products=json_decode($data[0]["productIds"]);
+          for ($i = 0; $i < count($products); $i++) {
+            $sqlQuery = 'UPDATE s_articles SET template="'.$this->cf_template.'" WHERE id='.$products[$i];
+            Shopware()->Db()->query($sqlQuery);       
+          }
+          $tname = "webiprog_tmp_groups_attr";
+          $sqlQuery = 'select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME="'.$tname.'"';
+          if (Shopware()->Db()->fetchAll($sqlQuery)) {
+            $sqlQuery = "SELECT count(*) as cnt FROM ".$tname;
+            $data = Shopware()->Db()->fetchAll($sqlQuery);
+            if ($data[0]["cnt"] > 0) {
+              $sqlQuery = "INSERT INTO s_article_configurator_groups_attributes SELECT * FROM ".$tname;
+              Shopware()->Db()->query($sqlQuery);
+            }
+          }
+          $tname = "webiprog_tmp_options_attr";
+          $sqlQuery = 'select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME="'.$tname.'"';
+          if (Shopware()->Db()->fetchAll($sqlQuery)) {
+            $sqlQuery = "SELECT count(*) as cnt FROM ".$tname;
+            $data = Shopware()->Db()->fetchAll($sqlQuery);
+            if ($data[0]["cnt"] > 0) {
+              $sqlQuery = "INSERT INTO s_article_configurator_options_attributes SELECT * FROM ".$tname;
+              Shopware()->Db()->query($sqlQuery);
+            }
+          }
+       }       
+    }
+    $sqlQuery = "DROP TABLE IF EXISTS webiprog_tmp_common, webiprog_tmp_groups_attr, webiprog_tmp_options_attr";
+    Shopware()->Db()->query($sqlQuery); 
+    $tname = "webiprog_tmp_common";
+    $sqlQuery = "CREATE TABLE ".$tname." (
+      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      pluginVersion VARCHAR(20),
+      dbVersion INT(5) UNSIGNED,
+      productIds TEXT,
+      createdAt DATETIME,
+      updatedAt DATETIME
+      )";      
+    Shopware()->Db()->query($sqlQuery);
+    $sqlQuery = "INSERT INTO ".$tname." (pluginVersion, dbVersion, createdAt, updatedAt) VALUES ('".$this->getVersion()."',".$this->db_table_version.",now(),now())";
+    Shopware()->Db()->query($sqlQuery); 
+}
+
+private function deleteSecureUninstallData()
+{
+  $sqlQuery = "DROP TABLE IF EXISTS webiprog_tmp_common, webiprog_tmp_groups_attr, webiprog_tmp_options_attr";
+  Shopware()->Db()->query($sqlQuery); 
+}  
+
+private function saveSecureUninstallData()
+{
+      $sqlQuery = "DROP TABLE IF EXISTS webiprog_tmp_groups_attr, webiprog_tmp_options_attr";
+      Shopware()->Db()->query($sqlQuery);      
+      $sqlQuery = "SELECT count(*) as cnt FROM s_article_configurator_groups_attributes";
+      $data = Shopware()->Db()->fetchAll($sqlQuery);
+      if ($data[0]["cnt"] > 0) {
+        $tname = "webiprog_tmp_groups_attr";   
+        $sqlQuery = "CREATE TABLE ".$tname." LIKE s_article_configurator_groups_attributes"; 
+        Shopware()->Db()->query($sqlQuery);
+        $sqlQuery = "INSERT INTO ".$tname." SELECT * FROM s_article_configurator_groups_attributes";
+        Shopware()->Db()->query($sqlQuery);
+      }
+      $sqlQuery = "SELECT count(*) as cnt FROM s_article_configurator_options_attributes";
+      $data = Shopware()->Db()->fetchAll($sqlQuery);
+      if ($data[0]["cnt"] > 0) {
+        $tname = "webiprog_tmp_options_attr";
+        $sqlQuery = "CREATE TABLE ".$tname." LIKE s_article_configurator_options_attributes"; 
+        Shopware()->Db()->query($sqlQuery);
+        $sqlQuery = "INSERT INTO ".$tname." SELECT * FROM s_article_configurator_options_attributes";
+        Shopware()->Db()->query($sqlQuery);
+      }   
+      $tname = "webiprog_tmp_common";
+      $sqlQuery = $sqlQuery = 'select * from INFORMATION_SCHEMA.TABLES where TABLE_NAME="'.$tname.'"';
+      if (Shopware()->Db()->fetchAll($sqlQuery)) {
+        $products=[];
+        $sqlQuery = 'SELECT id FROM s_articles WHERE template="'.$this->cf_template.'"';
+        $all_products = Shopware()->Db()->fetchAll($sqlQuery);
+        if ($all_products) {
+           foreach ($all_products as $product) {
+               $products[]=$product["id"];
+           } 
+        }
+        $sqlQuery = "UPDATE ".$tname." SET productIds = ?, updatedAt = now()";
+        Shopware()->Db()->query($sqlQuery,[json_encode($products)]);  
+      }
 }
 
 public function unInstallConfiguratorAttributes()
-{
+{    
     $all_entries = $this->dbeCartAttributeFilelds;
     $tname='s_order_basket_attributes';
     foreach ($all_entries as $cur_entry) {
@@ -264,22 +375,26 @@ public function unInstallConfiguratorAttributes()
     foreach ($all_entries as $cur_entry) {
       $this->getEntityManager()->removeAttribute($tname, $this->cf_prefix, $cur_entry['name']);
     }  
-    $all_entries = $this->dbeConfGroupFilelds;
-    $tname='s_article_configurator_groups_attributes';
-    foreach ($all_entries as $cur_entry) {
-      $this->getEntityManager()->removeAttribute($tname, $this->cf_prefix, $cur_entry['name']);  
-      $cname=($this->cf_prefix).'_'.$cur_entry['name'];  
-      $sqlQuery = "DELETE FROM s_attribute_configuration WHERE table_name=? AND column_name=?";
-      Shopware()->Db()->query($sqlQuery,[$tname,$cname]);
-    }
-    $all_entries = $this->dbeConfOptionFilelds;
-    $tname='s_article_configurator_options_attributes';
-    foreach ($all_entries as $cur_entry) {
-      $this->getEntityManager()->removeAttribute($tname, $this->cf_prefix, $cur_entry['name']);
-      $cname=($this->cf_prefix).'_'.$cur_entry['name']; 
-      $sqlQuery = "DELETE FROM s_attribute_configuration WHERE table_name=? AND column_name=?";
-      Shopware()->Db()->query($sqlQuery,[$tname,$cname]);
-    }
+    try {
+      $all_entries = $this->dbeConfGroupFilelds;
+      $tname='s_article_configurator_groups_attributes';
+      foreach ($all_entries as $cur_entry) {
+        $this->getEntityManager()->removeAttribute($tname, $this->cf_prefix, $cur_entry['name']);  
+        $cname=($this->cf_prefix).'_'.$cur_entry['name'];  
+        $sqlQuery = "DELETE FROM s_attribute_configuration WHERE table_name=? AND column_name=?";
+        Shopware()->Db()->query($sqlQuery,[$tname,$cname]);
+      }
+    } catch (Exception $e) {  }
+    try {
+      $all_entries = $this->dbeConfOptionFilelds;
+      $tname='s_article_configurator_options_attributes';
+      foreach ($all_entries as $cur_entry) {
+        $this->getEntityManager()->removeAttribute($tname, $this->cf_prefix, $cur_entry['name']);
+        $cname=($this->cf_prefix).'_'.$cur_entry['name']; 
+        $sqlQuery = "DELETE FROM s_attribute_configuration WHERE table_name=? AND column_name=?";
+        Shopware()->Db()->query($sqlQuery,[$tname,$cname]);
+      }
+    } catch (Exception $e) {  }
     $metaDataCacheDoctrine = $this->getEntityManager()->getConfiguration()->getMetadataCacheImpl();
     $metaDataCacheDoctrine->deleteAll();    
     $this->getEntityManager()->generateAttributeModels('s_article_configurator_groups_attributes', 's_article_configurator_options_attributes', 's_order_basket_attributes', 's_order_details_attributes'); 
@@ -752,7 +867,7 @@ public function onArticleGetProduct(Enlight_Event_EventArgs $args) {
 
 
 public function CreateAttributeTables()
-{
+{    
     $sqlQuery = "
       CREATE TABLE IF NOT EXISTS s_article_configurator_groups_attributes (
       id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -760,6 +875,8 @@ public function CreateAttributeTables()
       )
       ";
     Shopware()->Db()->query($sqlQuery);
+   
+    //
     $sqlQuery = "
       CREATE TABLE IF NOT EXISTS s_article_configurator_options_attributes (
       id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -770,19 +887,7 @@ public function CreateAttributeTables()
 }
 
 public function DropAttributeTables()
-{
-  if (!$this->full_clear_on_uninstall) {   
-    $tname = "webiprog_tmp_groups_attr_v".$this->db_table_version;
-    $sqlQuery = "CREATE TABLE ".$tname." LIKE s_article_configurator_groups_attributes"; 
-    Shopware()->Db()->query($sqlQuery);
-    $sqlQuery = "INSERT ".$tname." SELECT * FROM s_article_configurator_groups_attributes";
-    Shopware()->Db()->query($sqlQuery);
-    $tname = "webiprog_tmp_options_attr_v".$this->db_table_version;
-    $sqlQuery = "CREATE TABLE ".$tname." LIKE s_article_configurator_options_attributes"; 
-    Shopware()->Db()->query($sqlQuery);
-    $sqlQuery = "INSERT ".$tname." SELECT * FROM s_article_configurator_options_attributes";
-    Shopware()->Db()->query($sqlQuery);
-  } 
+{  
   $sqlQuery = "DROP TABLE IF EXISTS s_article_configurator_groups_attributes, s_article_configurator_options_attributes";
   Shopware()->Db()->query($sqlQuery); 
 }

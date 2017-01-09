@@ -31,7 +31,8 @@
 
 {if $is_horizontal}
 
-<tr>
+{$column_cnt=$cnt}
+<tr>	
 	{foreach from=$sConfigurator.values item=option name=config_option key=optionID}
 		<td style="width:{$tdw}%;" class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio td-color-cf' {if !$option.selectable}style="display:none"{/if}>
 		  	<div class="variant--option is--image">
@@ -95,7 +96,7 @@
 		{if ($parent_subgroup_id!="") && ($parent_subgroup_id!="0")}
 			{if in_array($parent_subgroup_id, $subgroups)}
 			  <tr class='cf_ajax_container_group_{$option.groupID}_{$option.optionID} cf_ajax_type_radio_sub' {if !$option.selectable || !$option.selected || $is_disabled}style="display:none"{/if}>
-			    <td class="td-color-cf"><div id="parent_subgroup_{$parent_subgroup_id}_container"></div></td>
+			    <td class="td-color-cf" colspan="{$column_cnt}"><div id="parent_subgroup_{$parent_subgroup_id}_container"></div></td>
 			  </tr>
 			{/if}
 		{/if}
@@ -185,6 +186,7 @@
 {/foreach}
 
 {/if}
+
 </table>
 </div>
 
